@@ -73,7 +73,7 @@ ifeq ($(GRUCODE),f3dex) # Fast3DEX
 else
 ifeq ($(GRUCODE), f3dex2) # Fast3DEX2
   GRUCODE_DEF := F3DEX_GBI_2
-  GRUCODE_ASFLAGS := --defsym F3DEX_GBI_SHARED=1
+  GRUCODE_ASFLAGS := --defsym F3DEX_GBI_SHARED=1 --defsym S2DEX_GBI_2=1
   TARGET := $(TARGET).f3dex2
   COMPARE := 0
 else

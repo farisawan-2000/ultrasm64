@@ -221,9 +221,9 @@ Gfx *geo_exec_cake_end_screen(s32 callContext, struct GraphNode *node, UNUSED f3
                 break;
         }
 #else
-        gSPDisplayList(displayListHead++, dl_cake_end_screen);
+        // gSPDisplayList(displayListHead++, dl_cake_end_screen);
 #endif
-        gSPEndDisplayList(displayListHead);
+        // gSPEndDisplayList(displayListHead);
     }
 
     return displayList;

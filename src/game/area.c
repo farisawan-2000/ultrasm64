@@ -359,36 +359,6 @@ void play_transition_after_delay(s16 transType, s16 time, u8 red, u8 green, u8 b
     play_transition(transType, time, red, green, blue);
 }
 
-#include "luigi_header.h"
-
-Gfx s2d_init_dl[] = {
-    gsDPPipeSync(),
-    gsDPSetTexturePersp(G_TP_NONE),
-    gsDPSetTextureLOD(G_TL_TILE),
-    gsDPSetTextureLUT(G_TT_NONE),
-    gsDPSetTextureConvert(G_TC_FILT),
-    gsDPSetAlphaCompare(G_AC_THRESHOLD),
-    gsDPSetBlendColor(0, 0, 0, 0x01),
-    gsDPSetCombineMode(G_CC_DECALRGBA, G_CC_DECALRGBA),
-    gsSPEndDisplayList(),
-};
-
-void render_minigame() {
-    gSPLoadUcode(gDisplayListHead++, gspS2DEX2_fifoTextStart, gspS2DEX2_fifoDataStart);
-
-    // init
-    gSPDisplayList(gDisplayListHead, s2d_init_dl);
-
-    // cover the end cake lol
-    gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
-    gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
-
-    // render luigi
-    gSPDisplayList(gDisplayListHead, luigi_sprite_dl);
-
-    gSPLoadUcode(gDisplayListHead++, gspF3DEX2_fifoTextStart, gspF3DEX2_fifoDataStart);
-}
-
 void render_game(void) {
     if (gCurrentArea != NULL && !gWarpTransition.pauseRendering) {
         geo_process_root(gCurrentArea->unk04, D_8032CE74, D_8032CE78, gFBSetColor);
@@ -433,6 +403,7 @@ void render_game(void) {
             }
         }
     if (gCurrLevelNum == LEVEL_ENDING) {
+        clear_frame_buffer(0);
         render_minigame();
     }
     } else {
@@ -442,7 +413,12 @@ void render_game(void) {
         } else {
             clear_frame_buffer(gWarpTransFBSetColor);
         }
+        if (gCurrLevelNum == LEVEL_ENDING){
+            clear_frame_buffer(0);
+            render_minigame();
+        }
     }
+
 
     D_8032CE74 = NULL;
     D_8032CE78 = NULL;

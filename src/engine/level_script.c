@@ -25,6 +25,8 @@
 #include "surface_collision.h"
 #include "surface_load.h"
 
+#define static
+
 #define CMD_GET(type, offset) (*(type *) (CMD_PROCESS_OFFSET(offset) + (u8 *) sCurrentCmd))
 
 // These are equal
@@ -842,3 +844,4 @@ struct LevelCommand *level_script_execute(struct LevelCommand *cmd) {
 
     return sCurrentCmd;
 }
+#undef static

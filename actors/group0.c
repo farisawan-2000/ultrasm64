@@ -27,3 +27,10 @@
 #include "sparkle_animation/model.inc.c"
 
 #include "src/wanted/luigi_chara.c"
+
+#include "src/wanted/poster.c"
+
+#include "src/wanted/mario_post.c"
+#include "src/wanted/luigi_post.c"
+#include "src/wanted/yoshi_post.c"
+#include "src/wanted/wario_post.c"

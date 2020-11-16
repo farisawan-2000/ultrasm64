@@ -32,6 +32,11 @@ extern "C" {
 /*---------------------------------------------------------------------------*
  *	Background
  *---------------------------------------------------------------------------*/
+typedef int16_t   qs510_t;
+typedef uint16_t  qu510_t;
+
+#define qs510(n)                      ((qs510_t)((n)*0x0400))
+#define qu510(n)                      ((qu510_t)((n)*0x0400))
 #define	G_BGLT_LOADBLOCK	0x0033
 #define	G_BGLT_LOADTILE		0xfff4
 

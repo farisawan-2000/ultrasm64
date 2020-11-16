@@ -1311,6 +1311,7 @@ s32 lvl_set_current_level(UNUSED s16 arg0, s32 levelNum) {
  * Play the "thank you so much for to playing my game" sound.
  */
 s32 lvl_play_the_end_screen_sound(UNUSED s16 arg0, UNUSED s32 arg1) {
-    // render_game();
+    // render_minigame();
+    // print_text_fmt_int(50, 05, "%d", poster_bg.s.scaleW);
     return 1;
 }
