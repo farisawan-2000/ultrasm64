@@ -298,11 +298,18 @@ void scroll_chars(int mx, int my, int lx, int ly, int yx, int yy, int wx, int wy
 
 int mini_mode = MODE_PICKING;
 
-void disp_chara(int x) {
+int foundChar = 0;
 
-    gSPObjLoadTxtr(gDisplayListHead++, &textures[x]);
-    
-    gSPObjSprite(gDisplayListHead++, &entities[x]);
+void disp_chara(int x) {
+    if (foundChar == 1) {
+        if (x == index_of_sleuth) {
+            gSPObjLoadTxtr(gDisplayListHead++, &textures[x]);
+            gSPObjSprite(gDisplayListHead++, &entities[x]);
+        }
+    } else {
+        gSPObjLoadTxtr(gDisplayListHead++, &textures[x]);
+        gSPObjSprite(gDisplayListHead++, &entities[x]);
+    }
 }
 
 int latch_sleuth = 0;
@@ -332,6 +339,7 @@ void reset(void) {
     mini_mode = MODE_PICKING;
     remaining_time = 30;
     clickMode = MODE_NOTCLICK;
+    foundChar = 0;
 }
 
 void draw_cursor(void) {
@@ -361,6 +369,7 @@ void click(void) {
     int c_x = curX + 8,
         c_y = 240 - curY - 8;
     
+    // adjust difficulty here
     int ent_ulx = (entities[index_of_sleuth].s.objX >> 2) + 8,
         ent_uly = (entities[index_of_sleuth].s.objY >> 2) + 8,
         ent_lrx = (entities[index_of_sleuth].s.objX >> 2) + 52,
@@ -368,6 +377,7 @@ void click(void) {
         
 
     if (c_x < ent_lrx && c_x > ent_ulx && c_y < ent_lry && c_y > ent_uly) {
+        foundChar = 1;
         remaining_time += 5;
     }
 
@@ -421,11 +431,17 @@ void render_minigame(void) {
         if (gPlayer1Controller->buttonPressed & L_TRIG) {
             reset();
         }
-        scroll_chars(1, 1, -1, -1, 1, 0, 0, -1);
+        if (foundChar == 0){
+            scroll_chars(1, 1, -1, -1, 1, 0, 0, -1);
+        }
         draw_cursor();
+
+        // hud stuff
         print_text(120, 210, "TIME");
         print_text_fmt_int(140, 190, "%d", remaining_time);
-        if (secondTimer % 30 == 0) {
+
+
+        if (secondTimer % 30 == 0 && foundChar == 0) {
             remaining_time--;
         }
         if (remaining_time <= 0) reset();
