@@ -359,11 +359,23 @@ void play_transition_after_delay(s16 transType, s16 time, u8 red, u8 green, u8 b
     play_transition(transType, time, red, green, blue);
 }
 
+#include <PR/gs2dex.h>
+
+extern int curX, curY, index_of_sleuth;
+extern uObjSprite entities[4];
 void draw_minigame_hud(void) {
     gDPPipeSync(gDisplayListHead++);
     gDPSetCycleType(gDisplayListHead++,G_CYC_FILL);
     gDPSetFillColor(gDisplayListHead++, (GPACK_RGBA5551(238, 252, 40, 1) << 16) | GPACK_RGBA5551(238, 252, 40, 1));
     gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 50);
+    gDPFillRectangle(gDisplayListHead++, curX, 240 - curY - 16, curX + 16, 240 - curY);
+    gDPFillRectangle(gDisplayListHead++,
+        (entities[index_of_sleuth].s.objX >> 2) + 8,
+        (entities[index_of_sleuth].s.objY >> 2) + 8,
+        (entities[index_of_sleuth].s.objX >> 2) + 52,
+        (entities[index_of_sleuth].s.objY >> 2) + 52
+        );
+
     
 }
 

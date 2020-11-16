@@ -312,6 +312,14 @@ int picking_timer;
 
 int remaining_time = 30;
 u32 secondTimer = 0;
+int curX = 50;
+int curY = 50;
+enum clickModes {
+    MODE_NOTCLICK,
+    MODE_CLICK,
+};
+int clickMode = MODE_NOTCLICK;
+
 
 void reset(void) {
     latch_sleuth = 0;
@@ -323,18 +331,21 @@ void reset(void) {
     sleuthed_char[YOSHI] = 0;
     mini_mode = MODE_PICKING;
     remaining_time = 30;
+    clickMode = MODE_NOTCLICK;
 }
 
-int curX = 50;
-int curY = 50;
 void draw_cursor(void) {
     print_text(curX, curY, "*");
-    curX += (gPlayer1Controller->stickX / 4);
-    curY += (gPlayer1Controller->stickY / 4);
+    curX += (gPlayer1Controller->stickX / 8);
+    curY += (gPlayer1Controller->stickY / 8);
     if (curX > 320) {curX = 320;}
     if (curX < 0) {curX = 0;}
     if (curY > 180) {curY = 180;}
     if (curY < 0) {curY = 0;}
+    if (gPlayer1Controller->buttonPressed & A_BUTTON) {
+        clickMode = MODE_CLICK;
+    }
+
 }
 
 // void draw_hud(void) {
@@ -346,7 +357,21 @@ void draw_cursor(void) {
 //     // gSPLoadUcode(gDisplayListHead++, gspS2DEX2_fifoTextStart, gspS2DEX2_fifoDataStart);
 // }
 
+void click(void) {
+    int c_x = curX + 8,
+        c_y = 240 - curY - 8;
+    
+    int ent_ulx = (entities[index_of_sleuth].s.objX >> 2) + 8,
+        ent_uly = (entities[index_of_sleuth].s.objY >> 2) + 8,
+        ent_lrx = (entities[index_of_sleuth].s.objX >> 2) + 52,
+        ent_lry = (entities[index_of_sleuth].s.objY >> 2) + 52;
+        
 
+    if (c_x < ent_lrx && c_x > ent_ulx && c_y < ent_lry && c_y > ent_uly) {
+        remaining_time += 5;
+    }
+
+}
 
 void render_minigame(void) {
     int i;
@@ -403,7 +428,11 @@ void render_minigame(void) {
         if (secondTimer % 30 == 0) {
             remaining_time--;
         }
-        if (remaining_time == 0) reset();
+        if (remaining_time <= 0) reset();
+        if (clickMode == MODE_CLICK) {
+            click();
+            clickMode = MODE_NOTCLICK;
+        }
     }
 
     secondTimer++;
