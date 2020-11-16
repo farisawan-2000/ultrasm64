@@ -157,6 +157,7 @@ uObjTxtr *rngTimeTex[4] = {
     &wario_tex,
 };
 
+index_of_sleuth = 0;
 void populate_entities(s32 charNum) {
     // int rd = LUIGI;
     int i;
@@ -170,6 +171,7 @@ void populate_entities(s32 charNum) {
                     entTracker[i] = MARIO;
                     if (charNum == MARIO) {
                         sleuthed_char[MARIO] = 1;
+                        index_of_sleuth = i;
                     }
                 }
                 else {
@@ -187,6 +189,7 @@ void populate_entities(s32 charNum) {
                     entTracker[i] = LUIGI;
                     if (charNum == LUIGI) {
                         sleuthed_char[LUIGI] = 1;
+                        index_of_sleuth = i;
                     }
                 }
                 else {
@@ -204,6 +207,7 @@ void populate_entities(s32 charNum) {
                     entTracker[i] = YOSHI;
                     if (charNum == YOSHI) {
                         sleuthed_char[YOSHI] = 1;
+                        index_of_sleuth = i;
                     }
                 }
                 else {
@@ -221,6 +225,7 @@ void populate_entities(s32 charNum) {
                     entTracker[i] = WARIO;
                     if (charNum == WARIO) {
                         sleuthed_char[WARIO] = 1;
+                        index_of_sleuth = i;
                     }
                 }
                 else {
@@ -241,11 +246,25 @@ u32 random_range(int e)  {
     return (osGetTime() / x) % (e + 1);
 }
 
+#define abs(x) ((x) < 0 ? -(x) : (x))
+
 void randomize_positions(void) {
     int i;
+    entities[index_of_sleuth].s.objX = random_range(320) << 2;
+    entities[index_of_sleuth].s.objY = random_range(240) << 2;
     for (i = 0; i < ENT_SIZE; i++) {
-        entities[i].s.objX = random_range(320) << 2;
-        entities[i].s.objY = random_range(240) << 2;
+        if (i != index_of_sleuth) {
+            int x = random_range(320) << 2;
+            int y = random_range(240) << 2;
+
+            int x2 = entities[index_of_sleuth].s.objX;
+            int y2 = entities[index_of_sleuth].s.objX;
+
+            if (abs(y2 - y) < 30) y += 50;
+            if (abs(x2 - x) < 30) x += 50;
+            entities[i].s.objX = x;
+            entities[i].s.objY = y;
+        }
     }
 }
 
