@@ -290,9 +290,9 @@ void scroll_chars(int mx, int my, int lx, int ly, int yx, int yy, int wx, int wy
             break;
         }
         if (entities[i].s.objX > (320 << 2)) entities[i].s.objX = (-32 << 2);
-        if (entities[i].s.objY > (240 << 2)) entities[i].s.objY = (-32 << 2);
+        if (entities[i].s.objY > (240 << 2)) entities[i].s.objY = (2 << 2);
         if (entities[i].s.objX < (-32 << 2)) entities[i].s.objX = (320 << 2);
-        if (entities[i].s.objY < (-32 << 2)) entities[i].s.objY = (240 << 2);
+        if (entities[i].s.objY < (2 << 2)) entities[i].s.objY = (240 << 2);
     }
 }
 
@@ -329,9 +329,18 @@ void draw_cursor(void) {
     curY += (gPlayer1Controller->stickY / 4);
     if (curX > 320) {curX = 320;}
     if (curX < 0) {curX = 0;}
-    if (curY > 220) {curY = 220;}
+    if (curY > 180) {curY = 180;}
     if (curY < 0) {curY = 0;}
 }
+
+// void draw_hud(void) {
+// // /    gSPLoadUcode(gDisplayListHead++, gspF3DEX2_fifoTextStart, gspF3DEX2_fifoDataStart);
+
+//     gDPSetFillColor(gDisplayListHead++, (GPACK_RGBA5551(238, 252, 40, 1) << 16) | GPACK_RGBA5551(238, 252, 40, 1));
+//     gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 50);
+
+//     // gSPLoadUcode(gDisplayListHead++, gspS2DEX2_fifoTextStart, gspS2DEX2_fifoDataStart);
+// }
 
 void render_minigame(void) {
     int i;
@@ -384,8 +393,11 @@ void render_minigame(void) {
         scroll_chars(1, 1, -1, -1, 1, 0, 0, -1);
         print_text_fmt_int(50, 50, "%d", curY);
         draw_cursor();
+        print_text(100, 200, "TIME");
     }
 
 
     gSPLoadUcode(gDisplayListHead++, gspF3DEX2_fifoTextStart, gspF3DEX2_fifoDataStart);
+    // if (mini_mode == MODE_SLEUTH)
+    //     draw_hud();
 }

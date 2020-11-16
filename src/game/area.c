@@ -359,6 +359,19 @@ void play_transition_after_delay(s16 transType, s16 time, u8 red, u8 green, u8 b
     play_transition(transType, time, red, green, blue);
 }
 
+void draw_minigame_hud(void) {
+    gDPPipeSync(gDisplayListHead++);
+    gDPSetCycleType(gDisplayListHead++,G_CYC_FILL);
+    gDPSetFillColor(gDisplayListHead++, (GPACK_RGBA5551(238, 252, 40, 1) << 16) | GPACK_RGBA5551(238, 252, 40, 1));
+    gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 50);
+    
+}
+
+extern int mini_mode;
+enum modeSe {
+    MODE_PICKING,
+    MODE_SLEUTH,
+};
 void render_game(void) {
     if (gCurrentArea != NULL && !gWarpTransition.pauseRendering) {
         geo_process_root(gCurrentArea->unk04, D_8032CE74, D_8032CE78, gFBSetColor);
@@ -405,6 +418,8 @@ void render_game(void) {
     if (gCurrLevelNum == LEVEL_ENDING) {
         clear_frame_buffer(0);
         render_minigame();
+        if (mini_mode == MODE_SLEUTH)
+            draw_minigame_hud();
         render_text_labels();
     }
     } else {
@@ -417,6 +432,8 @@ void render_game(void) {
         if (gCurrLevelNum == LEVEL_ENDING){
             clear_frame_buffer(0);
             render_minigame();
+            if (mini_mode == MODE_SLEUTH)
+                draw_minigame_hud();
             render_text_labels();
         }
     }
