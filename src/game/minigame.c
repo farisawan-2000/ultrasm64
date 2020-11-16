@@ -327,10 +327,10 @@ void draw_cursor(void) {
     print_text(curX, curY, "*");
     curX += (gPlayer1Controller->stickX / 4);
     curY += (gPlayer1Controller->stickY / 4);
-    if (curX > 320) curX = 320;
-    if (curX < 0) curX = 0;
-    if (curX > 320) curY = 320;
-    if (curX < 0) curY = 0;
+    if (curX > 320) {curX = 320;}
+    if (curX < 0) {curX = 0;}
+    if (curY > 220) {curY = 220;}
+    if (curY < 0) {curY = 0;}
 }
 
 void render_minigame(void) {
