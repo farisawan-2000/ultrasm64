@@ -12,8 +12,10 @@
 #include "mario.h"
 #include "debug_course.h"
 
-
+#include "mario_header.h"
 #include "luigi_header.h"
+#include "yoshi_header.h"
+#include "wario_header.h"
 
 #include "poster.h"
 #include "mario_poster.h"
@@ -71,19 +73,35 @@ enum char_place_modes {
 void place_chara(s32 charNum) {
     switch (charNum) {
         case MARIO:
+            gSPDisplayList(gDisplayListHead++, mario_sprite_dl);
             break;
         case LUIGI:
             gSPDisplayList(gDisplayListHead++, luigi_sprite_dl);
             break;
         case YOSHI:
+            gSPDisplayList(gDisplayListHead++, yoshi_sprite_dl);
             break;
         case WARIO:
+            gSPDisplayList(gDisplayListHead++, wario_sprite_dl);
             break;
     }
 }
 
-void mtx_chara(void) {
-    gSPObjMatrix(gDisplayListHead++, &luigi_mtx);
+void mtx_chara(s32 charNum) {
+    switch (charNum) {
+        case MARIO:
+            gSPObjMatrix(gDisplayListHead++, &mario_mtx);
+            break;
+        case LUIGI:
+            gSPObjMatrix(gDisplayListHead++, &luigi_mtx);
+            break;
+        case YOSHI:
+            gSPObjMatrix(gDisplayListHead++, &yoshi_mtx);
+            break;
+        case WARIO:
+            gSPObjMatrix(gDisplayListHead++, &wario_mtx);
+            break;
+    }
 }
 
 
@@ -122,29 +140,105 @@ enum modeSelect {
 
 uObjSprite entities[ENT_SIZE];
 uObjTxtr textures[ENT_SIZE];
+char entTracker[ENT_SIZE];
 
-void populate_entities(void) {
-    // int rd = random_u16() % WARIO;
-    int rd = LUIGI;
+char sleuthed_char[4] = {0, 0, 0, 0};
+
+uObjSprite *rngTimeSprite[4] = {
+    &mario_obj,
+    &luigi_obj,
+    &yoshi_obj,
+    &wario_obj,
+};
+uObjTxtr *rngTimeTex[4] = {
+    &mario_tex,
+    &luigi_tex,
+    &yoshi_tex,
+    &wario_tex,
+};
+
+void populate_entities(s32 charNum) {
+    // int rd = LUIGI;
     int i;
     for (i = 0; i < ENT_SIZE; i++) {
+        int rd = random_u16() % (WARIO + 1);
         switch(rd) {
             case MARIO:
+                if (sleuthed_char[MARIO] == 0) {
+                    entities[i] = *((uObjSprite*)segmented_to_virtual(&mario_obj));
+                    textures[i] = *((uObjTxtr*)segmented_to_virtual(&mario_tex));
+                    entTracker[i] = MARIO;
+                    if (charNum == MARIO) {
+                        sleuthed_char[MARIO] = 1;
+                    }
+                }
+                else {
+                    int x = random_u16() % (WARIO + 1);
+                    if (x == MARIO) x++;
+                    entities[i] = *((uObjSprite*)segmented_to_virtual(rngTimeSprite[x]));
+                    textures[i] = *((uObjTxtr*)segmented_to_virtual(rngTimeTex[x]));
+                    entTracker[i] = x;
+                }
             break;
             case LUIGI:
-            entities[i] = *((uObjSprite*)segmented_to_virtual(&luigi_obj));
-            textures[i] = *((uObjTxtr*)segmented_to_virtual(&luigi_tex));
+                if (sleuthed_char[LUIGI] == 0) {
+                    entities[i] = *((uObjSprite*)segmented_to_virtual(&luigi_obj));
+                    textures[i] = *((uObjTxtr*)segmented_to_virtual(&luigi_tex));
+                    entTracker[i] = LUIGI;
+                    if (charNum == LUIGI) {
+                        sleuthed_char[LUIGI] = 1;
+                    }
+                }
+                else {
+                    int x = random_u16() % (WARIO + 1);
+                    if (x == LUIGI) x++;
+                    entities[i] = *((uObjSprite*)segmented_to_virtual(rngTimeSprite[x]));
+                    textures[i] = *((uObjTxtr*)segmented_to_virtual(rngTimeTex[x]));
+                    entTracker[i] = x;
+                }
             break;
             case YOSHI:
+                if (sleuthed_char[YOSHI] == 0) {
+                    entities[i] = *((uObjSprite*)segmented_to_virtual(&yoshi_obj));
+                    textures[i] = *((uObjTxtr*)segmented_to_virtual(&yoshi_tex));
+                    entTracker[i] = YOSHI;
+                    if (charNum == YOSHI) {
+                        sleuthed_char[YOSHI] = 1;
+                    }
+                }
+                else {
+                    int x = random_u16() % (WARIO + 1);
+                    if (x == YOSHI) x--;
+                    entities[i] = *((uObjSprite*)segmented_to_virtual(rngTimeSprite[x]));
+                    textures[i] = *((uObjTxtr*)segmented_to_virtual(rngTimeTex[x]));
+                    entTracker[i] = x;
+                }
             break;
             case WARIO:
+                if (sleuthed_char[WARIO] == 0) {
+                    entities[i] = *((uObjSprite*)segmented_to_virtual(&wario_obj));
+                    textures[i] = *((uObjTxtr*)segmented_to_virtual(&wario_tex));
+                    entTracker[i] = WARIO;
+                    if (charNum == WARIO) {
+                        sleuthed_char[WARIO] = 1;
+                    }
+                }
+                else {
+                    int x = random_u16() % (WARIO + 1);
+                    if (x == WARIO) x--;
+                    entities[i] = *((uObjSprite*)segmented_to_virtual(rngTimeSprite[x]));
+                    textures[i] = *((uObjTxtr*)segmented_to_virtual(rngTimeTex[x]));
+                    entTracker[i] = x;
+                }
             break;
         }
     }
 }
 
 u32 random_range(int e)  {
-    return random_u16() % e;
+    int x = random_u16();
+    if (x == 0) x ++;
+    return (osGetTime() / x) % (e + 1);
 }
 
 void randomize_positions(void) {
@@ -155,13 +249,69 @@ void randomize_positions(void) {
     }
 }
 
-int mini_mode = MODE_SLEUTH;
+void scroll_chars(int mx, int my, int lx, int ly, int yx, int yy, int wx, int wy) {
+    int i = 0;
+    for (i; i < ENT_SIZE; i++) {
+        switch (entTracker[i]){
+            case MARIO:
+                entities[i].s.objX += (mx << 2);
+                entities[i].s.objY += (my << 2);
+            break;
+            case LUIGI:
+                entities[i].s.objX += (lx << 2);
+                entities[i].s.objY += (ly << 2);
+            break;
+            case YOSHI:
+                entities[i].s.objX += (yx << 2);
+                entities[i].s.objY += (yy << 2);
+            break;
+            case WARIO:
+                entities[i].s.objX += (wx << 2);
+                entities[i].s.objY += (wy << 2);
+            break;
+        }
+        if (entities[i].s.objX > (320 << 2)) entities[i].s.objX = (-32 << 2);
+        if (entities[i].s.objY > (240 << 2)) entities[i].s.objY = (-32 << 2);
+        if (entities[i].s.objX < (-32 << 2)) entities[i].s.objX = (320 << 2);
+        if (entities[i].s.objY < (-32 << 2)) entities[i].s.objY = (240 << 2);
+    }
+}
+
+int mini_mode = MODE_PICKING;
 
 void disp_chara(int x) {
 
     gSPObjLoadTxtr(gDisplayListHead++, &textures[x]);
     
     gSPObjSprite(gDisplayListHead++, &entities[x]);
+}
+
+int latch_sleuth = 0;
+int latch_picking = 0;
+
+int picking_timer;
+
+void reset(void) {
+    latch_sleuth = 0;
+    latch_picking = 0;
+    picking_timer = 0;
+    sleuthed_char[MARIO] = 0;
+    sleuthed_char[LUIGI] = 0;
+    sleuthed_char[WARIO] = 0;
+    sleuthed_char[YOSHI] = 0;
+    mini_mode = MODE_PICKING;
+}
+
+int curX = 50;
+int curY = 50;
+void draw_cursor(void) {
+    print_text(curX, curY, "*");
+    curX += (gPlayer1Controller->stickX / 4);
+    curY += (gPlayer1Controller->stickY / 4);
+    if (curX > 320) curX = 320;
+    if (curX < 0) curX = 0;
+    if (curX > 320) curY = 320;
+    if (curX < 0) curY = 0;
 }
 
 void render_minigame(void) {
@@ -175,19 +325,32 @@ void render_minigame(void) {
     gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
     gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
 
-    populate_entities();
-    randomize_positions();
 
     if (mini_mode == MODE_PICKING) {
+        if (latch_picking == 0) {
+            picking_timer = random_range(50) + 50;
+            latch_picking = 1;
+        }
         scroll_pick_chara(cte);
 
         // if (gPlayer1Controller->buttonPressed & L_TRIG)
-        if (gGlobalTimer % 2 == 0)
-        cte++;
+        if (gGlobalTimer % 2 == 0){
+            if (picking_timer > 0)cte++;
+        }
+        picking_timer--;
         if (cte > WARIO) cte = MARIO;
+        if (picking_timer < -20) {
+            // picking_timer = 0;
+            mini_mode = MODE_SLEUTH;
+        }
     }
     if (mini_mode == MODE_SLEUTH) {
-        mtx_chara();
+        if (latch_sleuth == 0){
+            populate_entities(cte);
+            randomize_positions();
+            latch_sleuth = 1;
+        }
+        mtx_chara(cte);
         place_chara(cte);
         gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
         gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2);
@@ -195,6 +358,13 @@ void render_minigame(void) {
         for (i = 0; i < ENT_SIZE; i++) {
             disp_chara(i);
         }
+        // debug reset
+        if (gPlayer1Controller->buttonPressed & L_TRIG) {
+            reset();
+        }
+        scroll_chars(1, 1, -1, -1, 1, 0, 0, -1);
+        print_text_fmt_int(50, 50, "%d", curY);
+        draw_cursor();
     }
 
 

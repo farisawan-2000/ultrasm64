@@ -405,6 +405,7 @@ void render_game(void) {
     if (gCurrLevelNum == LEVEL_ENDING) {
         clear_frame_buffer(0);
         render_minigame();
+        render_text_labels();
     }
     } else {
         render_text_labels();
@@ -416,6 +417,7 @@ void render_game(void) {
         if (gCurrLevelNum == LEVEL_ENDING){
             clear_frame_buffer(0);
             render_minigame();
+            render_text_labels();
         }
     }
 

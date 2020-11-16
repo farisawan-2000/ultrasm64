@@ -19,9 +19,9 @@
 #include "../engine/level_script.h"
 
 // Ensure that USE_EXT_RAM is defined.
-#ifndef USE_EXT_RAM
-#error You have to define USE_EXT_RAM in 'include/segments.h'
-#endif
+// #ifndef USE_EXT_RAM
+// #error You have to define USE_EXT_RAM in 'include/segments.h'
+// #endif
 
 // Require 8 MB of RAM, even if the pool doesn't go into extended memory.
 // Change the '8' to whatever MB limit you want.

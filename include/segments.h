@@ -2,7 +2,7 @@
 #define SEGMENTS_H
 
 /* Use expansion pack RAM */
-#define USE_EXT_RAM 1
+// #define USE_EXT_RAM 1
 
 #ifndef LINKER
 #include "segment_symbols.h"
