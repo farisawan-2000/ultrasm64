@@ -310,6 +310,9 @@ int latch_picking = 0;
 
 int picking_timer;
 
+int remaining_time = 30;
+u32 secondTimer = 0;
+
 void reset(void) {
     latch_sleuth = 0;
     latch_picking = 0;
@@ -319,6 +322,7 @@ void reset(void) {
     sleuthed_char[WARIO] = 0;
     sleuthed_char[YOSHI] = 0;
     mini_mode = MODE_PICKING;
+    remaining_time = 30;
 }
 
 int curX = 50;
@@ -341,6 +345,8 @@ void draw_cursor(void) {
 
 //     // gSPLoadUcode(gDisplayListHead++, gspS2DEX2_fifoTextStart, gspS2DEX2_fifoDataStart);
 // }
+
+
 
 void render_minigame(void) {
     int i;
@@ -391,12 +397,16 @@ void render_minigame(void) {
             reset();
         }
         scroll_chars(1, 1, -1, -1, 1, 0, 0, -1);
-        print_text_fmt_int(50, 50, "%d", curY);
         draw_cursor();
-        print_text(100, 200, "TIME");
+        print_text(120, 210, "TIME");
+        print_text_fmt_int(140, 190, "%d", remaining_time);
+        if (secondTimer % 30 == 0) {
+            remaining_time--;
+        }
+        if (remaining_time == 0) reset();
     }
 
-
+    secondTimer++;
     gSPLoadUcode(gDisplayListHead++, gspF3DEX2_fifoTextStart, gspF3DEX2_fifoDataStart);
     // if (mini_mode == MODE_SLEUTH)
     //     draw_hud();
