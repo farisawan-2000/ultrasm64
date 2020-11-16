@@ -16,6 +16,8 @@
 #include "make_const_nonconst.h"
 #include "levels/ending/header.h"
 
+extern const LevelScript marker[];
+
 const LevelScript level_ending_entry[] = {
     /*0*/ INIT_LEVEL(),
     /*1*/ LOAD_YAY0(/*seg*/ 0x07, _ending_segment_7SegmentRomStart, _ending_segment_7SegmentRomEnd),
@@ -25,13 +27,16 @@ const LevelScript level_ending_entry[] = {
     /*7*/ END_AREA(),
 
     /*8*/ FREE_LEVEL_POOL(),
-    /*9*/ SLEEP(/*frames*/ 60),
+    /*9*/ SLEEP(/*frames*/ 2),
     /*10*/ BLACKOUT(/*active*/ FALSE),
     /*11*/ LOAD_AREA(/*area*/ 1),
-    /*12*/ TRANSITION(/*transType*/ WARP_TRANSITION_FADE_FROM_COLOR, /*time*/ 75, /*color*/ 0x00, 0x00, 0x00),
-    /*14*/ SLEEP(/*frames*/ 120),
-    /*15*/ CALL(/*arg*/ 0, /*func*/ lvl_play_the_end_screen_sound),
+    /*12*/ TRANSITION(/*transType*/ WARP_TRANSITION_FADE_FROM_STAR, /*time*/ 20, /*color*/ 0xFF, 0xFF, 0xFF),
+    /*14*/ SLEEP(/*frames*/ 2),
+    /*15*/ CALL_LOOP(/*arg*/ 0, /*func*/ lvl_play_the_end_screen_sound),
     // L1:
     /*17*/ SLEEP(/*frames*/ 1),
-    /*18*/ JUMP(level_ending_entry + 17),
+    /*18*/ JUMP(level_ending_entry + 15),
+};
+const LevelScript marker[] = {
+    END_AREA(),
 };

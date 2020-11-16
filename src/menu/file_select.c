@@ -169,7 +169,7 @@ static unsigned char textEraseFileButton[][16] = { {TEXT_ERASE_FILE}, {TEXT_ERAS
 #endif
 
 #ifndef VERSION_EU
-static unsigned char textSoundModes[][8] = { { TEXT_STEREO }, { TEXT_MONO }, { TEXT_HEADSET } };
+static unsigned char textSoundModes[][16] = { { TEXT_STEREO }, { TEXT_MONO }, { TEXT_HEADSET } };
 #endif
 
 static unsigned char textMarioA[] = { TEXT_FILE_MARIO_A };
@@ -1020,7 +1020,7 @@ void check_erase_menu_clicked_buttons(struct Object *eraseButton) {
 void render_sound_mode_menu_buttons(struct Object *soundModeButton) {
     // Stereo option button
     sMainMenuButtons[MENU_BUTTON_STEREO] = spawn_object_rel_with_rot(
-        soundModeButton, MODEL_MAIN_MENU_GENERIC_BUTTON, bhvMenuButton, 533, SOUND_BUTTON_Y, -100, 0, -0x8000, 0);
+        soundModeButton, MODEL_NONE, bhvMenuButton, 533, SOUND_BUTTON_Y, -100, 0, -0x8000, 0);
     sMainMenuButtons[MENU_BUTTON_STEREO]->oMenuButtonScale = 0.11111111f;
     // Mono option button
     sMainMenuButtons[MENU_BUTTON_MONO] = spawn_object_rel_with_rot(
@@ -1028,7 +1028,7 @@ void render_sound_mode_menu_buttons(struct Object *soundModeButton) {
     sMainMenuButtons[MENU_BUTTON_MONO]->oMenuButtonScale = 0.11111111f;
     // Headset option button
     sMainMenuButtons[MENU_BUTTON_HEADSET] = spawn_object_rel_with_rot(
-        soundModeButton, MODEL_MAIN_MENU_GENERIC_BUTTON, bhvMenuButton, -533, SOUND_BUTTON_Y, -100, 0, -0x8000, 0);
+        soundModeButton, 0, bhvMenuButton, -533, SOUND_BUTTON_Y, -100, 0, -0x8000, 0);
     sMainMenuButtons[MENU_BUTTON_HEADSET]->oMenuButtonScale = 0.11111111f;
 
 #ifdef VERSION_EU
@@ -1081,7 +1081,7 @@ void check_sound_mode_menu_clicked_buttons(struct Object *soundModeButton) {
                         sSelectedButtonID = buttonID;
 #endif
                         sSoundMode = buttonID - MENU_BUTTON_OPTION_MIN;
-                        save_file_set_sound_mode(sSoundMode);
+                        save_file_set_sound_mode(MENU_BUTTON_STEREO - MENU_BUTTON_OPTION_MIN);
                     }
                 }
 #ifdef VERSION_EU
@@ -1116,6 +1116,11 @@ void check_sound_mode_menu_clicked_buttons(struct Object *soundModeButton) {
  */
 void load_main_menu_save_file(struct Object *fileButton, s32 fileNum) {
     if (fileButton->oMenuButtonState == MENU_BUTTON_STATE_FULLSCREEN) {
+        sSelectedFileNum = fileNum;
+    }
+    if (fileButton->oMenuButtonState == MENU_BUTTON_STATE_ZOOM_IN_OUT) {
+        play_sound(SOUND_MENU_STAR_SOUND, gDefaultSoundArgs);
+        // return_to_main_menu(MENU_BUTTON_SCORE, sMainMenuButtons[MENU_BUTTON_SCORE_RETURN]);
         sSelectedFileNum = fileNum;
     }
 }
@@ -1534,6 +1539,7 @@ void bhv_menu_button_manager_loop(void) {
             break;
 
         case MENU_BUTTON_SOUND_MODE:
+            // load_main_menu_save_file(sMainMenuButtons[MENU_BUTTON_SOUND_MODE], 1);
             check_sound_mode_menu_clicked_buttons(sMainMenuButtons[MENU_BUTTON_SOUND_MODE]);
             break;
 
@@ -1545,13 +1551,19 @@ void bhv_menu_button_manager_loop(void) {
             break;
 #else
         case MENU_BUTTON_STEREO:
+            // return_to_main_menu(MENU_BUTTON_SOUND_MODE, sMainMenuButtons[MENU_BUTTON_STEREO]);
+            load_main_menu_save_file(sMainMenuButtons[MENU_BUTTON_STEREO], 4);
             return_to_main_menu(MENU_BUTTON_SOUND_MODE, sMainMenuButtons[MENU_BUTTON_STEREO]);
             break;
         case MENU_BUTTON_MONO:
-            return_to_main_menu(MENU_BUTTON_SOUND_MODE, sMainMenuButtons[MENU_BUTTON_MONO]);
+        // return_to_main_menu(MENU_BUTTON_SOUND_MODE, sMainMenuButtons[MENU_BUTTON_MONO]);
+            load_main_menu_save_file(sMainMenuButtons[MENU_BUTTON_MONO], 4);
+            return_to_main_menu(MENU_BUTTON_SOUND_MODE, sMainMenuButtons[MENU_BUTTON_STEREO]);
             break;
         case MENU_BUTTON_HEADSET:
-            return_to_main_menu(MENU_BUTTON_SOUND_MODE, sMainMenuButtons[MENU_BUTTON_HEADSET]);
+        // return_to_main_menu(MENU_BUTTON_SOUND_MODE, sMainMenuButtons[MENU_BUTTON_HEADSET]);
+            load_main_menu_save_file(sMainMenuButtons[MENU_BUTTON_HEADSET], 4);
+            return_to_main_menu(MENU_BUTTON_SOUND_MODE, sMainMenuButtons[MENU_BUTTON_STEREO]);
             break;
 #endif
     }
@@ -2460,20 +2472,22 @@ void print_sound_mode_menu_strings(void) {
     }
 #else
     // Print sound mode names
-    for (mode = 0; mode < 3; mode++) {
-        if (mode == sSoundMode) {
+    // for (mode = 0; mode < 3; mode++) {
+    //     if (mode == 2) {
+    //     } else {
+    //         gDPSetEnvColor(gDisplayListHead++, 0, 0, 0, sTextBaseAlpha);
+    //     }
+    //     #ifdef VERSION_US
+    //         // Mode names are centered correctly on US
+    //         textX = get_str_x_pos_from_center(2 * 74 + 87, textSoundModes[mode], 10.0f);
+    //         print_generic_string(textX, 87, textSoundModes[mode]);
+    //     #elif VERSION_JP
+    //         print_generic_string(2 * 74 + 67, 87, textSoundModes[mode]);
+    //     #endif
+    // }
             gDPSetEnvColor(gDisplayListHead++, 255, 255, 255, sTextBaseAlpha);
-        } else {
-            gDPSetEnvColor(gDisplayListHead++, 0, 0, 0, sTextBaseAlpha);
-        }
-        #ifdef VERSION_US
-            // Mode names are centered correctly on US
-            textX = get_str_x_pos_from_center(mode * 74 + 87, textSoundModes[mode], 10.0f);
-            print_generic_string(textX, 87, textSoundModes[mode]);
-        #elif VERSION_JP
-            print_generic_string(mode * 74 + 67, 87, textSoundModes[mode]);
-        #endif
-    }
+    textX = get_str_x_pos_from_center(1 * 74 + 87, textSoundModes[2], 10.0f);
+            print_generic_string(textX, 87, textSoundModes[2]);
 #endif
 
 #ifdef VERSION_EU
