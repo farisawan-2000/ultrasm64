@@ -368,13 +368,16 @@ void draw_minigame_hud(void) {
     gDPSetCycleType(gDisplayListHead++,G_CYC_FILL);
     gDPSetFillColor(gDisplayListHead++, (GPACK_RGBA5551(238, 252, 40, 1) << 16) | GPACK_RGBA5551(238, 252, 40, 1));
     gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 50);
-    gDPFillRectangle(gDisplayListHead++, curX, 240 - curY - 16, curX + 16, 240 - curY);
-    gDPFillRectangle(gDisplayListHead++,
+
+    #ifdef DEBUG
+        gDPFillRectangle(gDisplayListHead++, curX, 240 - curY - 16, curX + 16, 240 - curY);
+        gDPFillRectangle(gDisplayListHead++,
         (entities[index_of_sleuth].s.objX >> 2) + 8,
         (entities[index_of_sleuth].s.objY >> 2) + 8,
         (entities[index_of_sleuth].s.objX >> 2) + 52,
         (entities[index_of_sleuth].s.objY >> 2) + 52
         );
+    #endif
 
     
 }
