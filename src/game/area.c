@@ -361,6 +361,50 @@ void play_transition_after_delay(s16 transType, s16 time, u8 red, u8 green, u8 b
 
 #include <PR/gs2dex.h>
 
+#include "mario_header.h"
+#include "luigi_header.h"
+#include "yoshi_header.h"
+#include "wario_header.h"
+#include "minigame.h"
+
+void place_chara(s32 charNum) {
+    switch (charNum) {
+        case MARIO:
+            gSPDisplayList(gDisplayListHead++, mario_sprite_dl);
+            break;
+        case LUIGI:
+            gSPDisplayList(gDisplayListHead++, luigi_sprite_dl);
+            break;
+        case YOSHI:
+            gSPDisplayList(gDisplayListHead++, yoshi_sprite_dl);
+            break;
+        case WARIO:
+            gSPDisplayList(gDisplayListHead++, wario_sprite_dl);
+            break;
+    }
+}
+
+void mtx_chara(s32 charNum) {
+    switch (charNum) {
+        case MARIO:
+            gSPObjMatrix(gDisplayListHead++, &mario_mtx);
+            break;
+        case LUIGI:
+            gSPObjMatrix(gDisplayListHead++, &luigi_mtx);
+            break;
+        case YOSHI:
+            gSPObjMatrix(gDisplayListHead++, &yoshi_mtx);
+            break;
+        case WARIO:
+            gSPObjMatrix(gDisplayListHead++, &wario_mtx);
+            break;
+    }
+}
+
+
+
+
+
 extern int curX, curY, index_of_sleuth;
 extern uObjSprite entities[4];
 void draw_minigame_hud(void) {
@@ -368,6 +412,7 @@ void draw_minigame_hud(void) {
     gDPSetCycleType(gDisplayListHead++,G_CYC_FILL);
     gDPSetFillColor(gDisplayListHead++, (GPACK_RGBA5551(238, 252, 40, 1) << 16) | GPACK_RGBA5551(238, 252, 40, 1));
     gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 50);
+    gDPPipeSync(gDisplayListHead++);
 
     #ifdef DEBUG
         gDPFillRectangle(gDisplayListHead++, curX, 240 - curY - 16, curX + 16, 240 - curY);
@@ -383,10 +428,7 @@ void draw_minigame_hud(void) {
 }
 
 extern int mini_mode;
-enum modeSe {
-    MODE_PICKING,
-    MODE_SLEUTH,
-};
+
 void render_game(void) {
     if (gCurrentArea != NULL && !gWarpTransition.pauseRendering) {
         geo_process_root(gCurrentArea->unk04, D_8032CE74, D_8032CE78, gFBSetColor);
@@ -433,7 +475,7 @@ void render_game(void) {
     if (gCurrLevelNum == LEVEL_ENDING) {
         clear_frame_buffer(0);
         render_minigame();
-        if (mini_mode == MODE_SLEUTH)
+        if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING)
             draw_minigame_hud();
         render_text_labels();
     }
@@ -447,7 +489,7 @@ void render_game(void) {
         if (gCurrLevelNum == LEVEL_ENDING){
             clear_frame_buffer(0);
             render_minigame();
-            if (mini_mode == MODE_SLEUTH)
+            if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING)
                 draw_minigame_hud();
             render_text_labels();
         }

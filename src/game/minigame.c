@@ -23,12 +23,7 @@
 #include "yoshi_poster.h"
 #include "wario_poster.h"
 
-enum charValues {
-    MARIO,
-    LUIGI,
-    YOSHI,
-    WARIO,
-};
+#include "minigame.h"
 
 Gfx s2d_init_dl[] = {
     gsDPPipeSync(),
@@ -42,6 +37,10 @@ Gfx s2d_init_dl[] = {
     gsSPEndDisplayList(),
 };
 
+int random_pos_neg(void) {
+    if (random_u16() > 0x7FFF) return 1;
+    return -1;
+}
 
 // render chara and posters
 void scroll_pick_chara(s32 charNum) {
@@ -62,47 +61,8 @@ void scroll_pick_chara(s32 charNum) {
     gSPDisplayList(gDisplayListHead++, poster_bg_dl);
 }
 
-enum char_place_modes {
-    MODE_UNIFORM,
-    MODE_SCATTERED,
-    MODE_SCROLLUNIFORM,
-    MODE_SCROLLSCATTER,
-};
 
-
-void place_chara(s32 charNum) {
-    switch (charNum) {
-        case MARIO:
-            gSPDisplayList(gDisplayListHead++, mario_sprite_dl);
-            break;
-        case LUIGI:
-            gSPDisplayList(gDisplayListHead++, luigi_sprite_dl);
-            break;
-        case YOSHI:
-            gSPDisplayList(gDisplayListHead++, yoshi_sprite_dl);
-            break;
-        case WARIO:
-            gSPDisplayList(gDisplayListHead++, wario_sprite_dl);
-            break;
-    }
-}
-
-void mtx_chara(s32 charNum) {
-    switch (charNum) {
-        case MARIO:
-            gSPObjMatrix(gDisplayListHead++, &mario_mtx);
-            break;
-        case LUIGI:
-            gSPObjMatrix(gDisplayListHead++, &luigi_mtx);
-            break;
-        case YOSHI:
-            gSPObjMatrix(gDisplayListHead++, &yoshi_mtx);
-            break;
-        case WARIO:
-            gSPObjMatrix(gDisplayListHead++, &wario_mtx);
-            break;
-    }
-}
+int charPlaceMode = MODE_SCROLLUNIFORM;
 
 
 uObjBg poster_bg = {
@@ -131,13 +91,11 @@ Gfx poster_bg_dl[] = {
 
 int cte = LUIGI;
 
-enum modeSelect {
-    MODE_PICKING,
-    MODE_SLEUTH,
-};
+
 
 #define ENT_SIZE 100
 
+int ent_count = ENT_SIZE;
 uObjSprite entities[ENT_SIZE];
 uObjTxtr textures[ENT_SIZE];
 char entTracker[ENT_SIZE];
@@ -161,7 +119,7 @@ index_of_sleuth = 0;
 void populate_entities(s32 charNum) {
     // int rd = LUIGI;
     int i;
-    for (i = 0; i < ENT_SIZE; i++) {
+    for (i = 0; i < ent_count; i++) {
         int rd = random_u16() % (WARIO + 1);
         switch(rd) {
             case MARIO:
@@ -250,12 +208,12 @@ u32 random_range(int e)  {
 
 void randomize_positions(void) {
     int i;
-    entities[index_of_sleuth].s.objX = random_range(320) << 2;
-    entities[index_of_sleuth].s.objY = random_range(240) << 2;
-    for (i = 0; i < ENT_SIZE; i++) {
+    entities[index_of_sleuth].s.objX = (random_range(320) << 2);
+    entities[index_of_sleuth].s.objY = (random_range(174) << 2);
+    for (i = 0; i < ent_count; i++) {
         if (i != index_of_sleuth) {
-            int x = random_range(320) << 2;
-            int y = random_range(240) << 2;
+            int x = (random_range(320) << 2);
+            int y = (random_range(174) << 2);
 
             int x2 = entities[index_of_sleuth].s.objX;
             int y2 = entities[index_of_sleuth].s.objX;
@@ -268,9 +226,27 @@ void randomize_positions(void) {
     }
 }
 
+#define DEFINE_LOL 10
+
+void uniform_positions(void) {
+    int i, j;
+    // entities[index_of_sleuth].s.objX = (random_range(320) / MOD_DEFINE_LOL) << 2;
+    // entities[index_of_sleuth].s.objY = (random_range(174) / MOD_DEFINE_LOL) << 2;
+    for (i = 0; i < DEFINE_LOL; i++) {
+        for (j = 0; j < DEFINE_LOL; j++) {
+            int y = (i * DEFINE_LOL) + j;
+            if (y < ent_count) {
+                entities[y].s.objX = (j * 32) << 2;
+                entities[y].s.objY = ((i + 2) * 32) << 2;
+            }
+        }
+    }
+}
+
+
 void scroll_chars(int mx, int my, int lx, int ly, int yx, int yy, int wx, int wy) {
     int i = 0;
-    for (i; i < ENT_SIZE; i++) {
+    for (i; i < ent_count; i++) {
         switch (entTracker[i]){
             case MARIO:
                 entities[i].s.objX += (mx << 2);
@@ -289,10 +265,10 @@ void scroll_chars(int mx, int my, int lx, int ly, int yx, int yy, int wx, int wy
                 entities[i].s.objY += (wy << 2);
             break;
         }
-        if (entities[i].s.objX > (320 << 2)) entities[i].s.objX = (-32 << 2);
-        if (entities[i].s.objY > (240 << 2)) entities[i].s.objY = (2 << 2);
-        if (entities[i].s.objX < (-32 << 2)) entities[i].s.objX = (320 << 2);
-        if (entities[i].s.objY < (2 << 2)) entities[i].s.objY = (240 << 2);
+        if (entities[i].s.objX > (320 << 2)) entities[i].s.objX -= (352 << 2);
+        if (entities[i].s.objY > (240 << 2)) entities[i].s.objY -= (238 << 2);
+        if (entities[i].s.objX < (-32 << 2)) entities[i].s.objX += (352 << 2);
+        if (entities[i].s.objY < (  2 << 2)) entities[i].s.objY += (240 << 2);
     }
 }
 
@@ -321,14 +297,13 @@ int remaining_time = 30;
 u32 secondTimer = 0;
 int curX = 50;
 int curY = 50;
-enum clickModes {
-    MODE_NOTCLICK,
-    MODE_CLICK,
-};
+
 int clickMode = MODE_NOTCLICK;
 
 
-void reset(void) {
+int score_timer = 0;
+
+void reset(int gameover) {
     latch_sleuth = 0;
     latch_picking = 0;
     picking_timer = 0;
@@ -337,9 +312,12 @@ void reset(void) {
     sleuthed_char[WARIO] = 0;
     sleuthed_char[YOSHI] = 0;
     mini_mode = MODE_PICKING;
-    remaining_time = 30;
+    if (gameover){
+        remaining_time = 30;
+    }
     clickMode = MODE_NOTCLICK;
     foundChar = 0;
+    score_timer = 0;
 }
 
 void draw_cursor(void) {
@@ -365,6 +343,37 @@ void draw_cursor(void) {
 //     // gSPLoadUcode(gDisplayListHead++, gspS2DEX2_fifoTextStart, gspS2DEX2_fifoDataStart);
 // }
 
+uObjSprite nullSprite = {
+    0, 0, 0, 0,          /* objX, scaleX, imageW, unused */
+    0, 0, 0, 0,          /* objY, scaleY, imageH, unused */
+    0, /* imageStride */
+    0, /* imageAdrs */
+    0, /* imageFmt */
+    0, /* imageSiz */
+    0, /* imagePal */
+    0, /* imageFlags */
+};
+
+uObjTxtr nullTex = {
+    0, 
+    NULL, /* image */
+    0, /* tmem */
+    0,  /* tsize   */
+    0,  /* tline   */
+    0, /* sid */
+    NULL, /* flag */
+    0xFFFFFFFF, /* mask */
+};
+
+void clear_entities(void) {
+    int i;
+    for (i = 0; i < ent_count; i++) {
+        entities[i] = nullSprite;
+        textures[i] = nullTex;
+    }
+
+}
+
 void click(void) {
     int c_x = curX + 8,
         c_y = 240 - curY - 8;
@@ -378,10 +387,20 @@ void click(void) {
 
     if (c_x < ent_lrx && c_x > ent_ulx && c_y < ent_lry && c_y > ent_uly) {
         foundChar = 1;
-        remaining_time += 5;
+        mini_mode = MODE_SCORING;
+        score_timer = SCORE_TIME;
+    }
+    else {
+        remaining_time -= 5;
     }
 
 }
+
+int r;
+
+int scrol_scatter_array[8] = {0,0,0,0,0,0,0,0};
+
+int myScore = 0;
 
 void render_minigame(void) {
     int i;
@@ -396,6 +415,7 @@ void render_minigame(void) {
 
 
     if (mini_mode == MODE_PICKING) {
+        int i = 0;
         if (latch_picking == 0) {
             picking_timer = random_range(50) + 50;
             latch_picking = 1;
@@ -412,15 +432,32 @@ void render_minigame(void) {
             // picking_timer = 0;
             mini_mode = MODE_SLEUTH;
         }
+        r = random_pos_neg();
+        charPlaceMode = random_u16() & 3;
+        if (charPlaceMode == MODE_SCROLLUNIFORM || charPlaceMode == MODE_UNIFORM)
+            ent_count = 10 * 7;
+        else ent_count = ENT_SIZE;
+        clear_entities();
+        for (i = 0; i < 8; i++) {
+            scrol_scatter_array[i] = random_pos_neg();
+        }
     }
     if (mini_mode == MODE_SLEUTH) {
         if (latch_sleuth == 0){
             populate_entities(cte);
-            randomize_positions();
+
+            switch (charPlaceMode) {
+                case MODE_SCROLLSCATTER:
+                case MODE_SCATTERED:
+                    randomize_positions();
+                    break;
+                case MODE_SCROLLUNIFORM:
+                case MODE_UNIFORM:
+                    uniform_positions();
+                    break;
+            }
             latch_sleuth = 1;
         }
-        mtx_chara(cte);
-        place_chara(cte);
         gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
         gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2);
         gSPObjRenderMode(gDisplayListHead++, G_OBJRM_XLU | G_OBJRM_BILERP);
@@ -429,10 +466,29 @@ void render_minigame(void) {
         }
         // debug reset
         if (gPlayer1Controller->buttonPressed & L_TRIG) {
-            reset();
+            reset(1);
         }
         if (foundChar == 0){
-            scroll_chars(1, 1, -1, -1, 1, 0, 0, -1);
+            switch (charPlaceMode) {
+                case MODE_SCROLLSCATTER:
+                    scroll_chars(
+                        scrol_scatter_array[0],
+                        scrol_scatter_array[1],
+                        scrol_scatter_array[2],
+                        scrol_scatter_array[3],
+                        scrol_scatter_array[4],
+                        scrol_scatter_array[5],
+                        scrol_scatter_array[6],
+                        scrol_scatter_array[7]
+                        );
+                    break;
+                case MODE_SCROLLUNIFORM:
+                    scroll_chars(r, r, r, r, r, r, r, r);
+                    break;
+                case MODE_SCATTERED:
+                case MODE_UNIFORM:
+                    break;
+            }
         }
         draw_cursor();
 
@@ -440,14 +496,47 @@ void render_minigame(void) {
         print_text(120, 210, "TIME");
         print_text_fmt_int(140, 190, "%d", remaining_time);
 
+        print_text(180, 210, "SCORE");
+        print_text_fmt_int(200, 190, "%d", myScore);
+
 
         if (secondTimer % 30 == 0 && foundChar == 0) {
             remaining_time--;
         }
-        if (remaining_time <= 0) reset();
+        if (remaining_time <= 0) reset(1);
         if (clickMode == MODE_CLICK) {
             click();
             clickMode = MODE_NOTCLICK;
+        }
+    }
+    if (mini_mode == MODE_SCORING) {
+        gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
+        gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2);
+        gSPObjRenderMode(gDisplayListHead++, G_OBJRM_XLU | G_OBJRM_BILERP);
+        for (i = 0; i < ENT_SIZE; i++) {
+            disp_chara(i);
+        }
+
+        print_text(120, 210, "TIME");
+        print_text_fmt_int(140, 190, "%d", remaining_time);
+        print_text(180, 210, "SCORE");
+        print_text_fmt_int(200, 190, "%d", myScore);
+
+        score_timer --;
+        if (score_timer < 0) {
+            mini_mode = MODE_PICKING;
+            score_timer = SCORE_TIME;
+            reset(0);
+        }
+        switch(score_timer) {
+            case 50:
+                myScore++;
+            case 48:
+            case 46:
+            case 44:
+            case 42:
+                remaining_time++;
+            break;
         }
     }
 
@@ -456,3 +545,4 @@ void render_minigame(void) {
     // if (mini_mode == MODE_SLEUTH)
     //     draw_hud();
 }
+
