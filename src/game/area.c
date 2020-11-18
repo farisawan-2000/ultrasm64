@@ -427,7 +427,14 @@ void draw_minigame_hud(void) {
     
 }
 
-extern int mini_mode, shouldReturn;
+void disp_on_hud(int ch) {
+    gSPLoadUcode(gDisplayListHead++, gspS2DEX2_fifoTextStart, gspS2DEX2_fifoDataStart);
+    place_chara(ch);
+    gSPLoadUcode(gDisplayListHead++, gspF3DEX2_fifoTextStart, gspF3DEX2_fifoDataStart);
+}
+
+
+extern int mini_mode, shouldReturn, cte;
 void render_game(void) {
     if (gCurrentArea != NULL && !gWarpTransition.pauseRendering) {
         geo_process_root(gCurrentArea->unk04, D_8032CE74, D_8032CE78, gFBSetColor);
@@ -474,8 +481,10 @@ void render_game(void) {
     if (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0) {
         clear_frame_buffer(0);
         render_minigame();
-        if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING)
+        if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING){
             draw_minigame_hud();
+            disp_on_hud(cte);
+        }
         render_text_labels();
     }
     } else {
@@ -488,8 +497,10 @@ void render_game(void) {
         if (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0){
             clear_frame_buffer(0);
             render_minigame();
-            if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING)
+            if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING) {
                 draw_minigame_hud();
+                disp_on_hud(cte);
+            }
             render_text_labels();
         }
     }

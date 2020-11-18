@@ -378,7 +378,9 @@ void clear_entities(void) {
     }
 
 }
-
+#include "audio/external.h"
+#include "seq_ids.h"
+int myScore = 0;
 void click(void) {
     int c_x = curX + 8,
         c_y = 240 - curY - 8;
@@ -394,9 +396,13 @@ void click(void) {
         foundChar = 1;
         mini_mode = MODE_SCORING;
         score_timer = SCORE_TIME;
+        play_sound(SOUND_GENERAL2_RIGHT_ANSWER, gDefaultSoundArgs);
+        if (myScore > 15 && cte == MARIO)
+            play_sound(SOUND_MARIO_WAAAOOOW, gDefaultSoundArgs);
     }
     else {
         remaining_time -= 5;
+        play_sound(SOUND_MENU_CAMERA_BUZZ, gDefaultSoundArgs);
     }
 
 }
@@ -405,7 +411,11 @@ int r;
 
 int scrol_scatter_array[8] = {0,0,0,0,0,0,0,0};
 
-int myScore = 0;
+
+void minigame_init(void) {
+    play_sequence(SEQ_PLAYER_LEVEL, SEQ_STREAMED_WANTED, 0);
+    play_sequence(SEQ_PLAYER_SFX, SEQ_SOUND_PLAYER, 0);
+}
 
 void render_minigame(void) {
     int i;
@@ -433,11 +443,15 @@ void render_minigame(void) {
             if (picking_timer > 0)cte++;
         }
         picking_timer--;
-        if (cte > WARIO) cte = MARIO;
+        
+        // if (cte > WARIO) cte = MARIO;
+        cte = LUIGI;
+
         if (picking_timer < -20) {
             // picking_timer = 0;
             mini_mode = MODE_SLEUTH;
         }
+        if (picking_timer == 0) play_sound(SOUND_MENU_CLICK_CHANGE_VIEW, gDefaultSoundArgs);
         r = random_pos_neg();
         charPlaceMode = random_u16() & 3;
         if (charPlaceMode == MODE_SCROLLUNIFORM || charPlaceMode == MODE_UNIFORM)
@@ -473,10 +487,16 @@ void render_minigame(void) {
         for (i = 0; i < ENT_SIZE; i++) {
             disp_chara(i);
         }
+
+
+
+
         // debug reset
         if (gPlayer1Controller->buttonPressed & L_TRIG) {
             reset(1);
         }
+
+
         if (foundChar == 0){
             switch (charPlaceMode) {
                 case MODE_SCROLLSCATTER:
@@ -544,6 +564,7 @@ void render_minigame(void) {
             case 46:
             case 44:
             case 42:
+                play_sound(SOUND_GENERAL_COIN, gDefaultSoundArgs);
                 remaining_time++;
             break;
         }

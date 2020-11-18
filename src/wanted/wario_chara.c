@@ -20,8 +20,8 @@ uObjMtx wario_mtx = {
 	1<<10,    1<<10           /* BaseScaleX, BaseScaleY */
 };
 uObjSprite wario_obj = {
-	0<<2, 1<<10, 32<<5, 0,          /* objX, scaleX, imageW, unused */
-	0<<2, 1<<10, 32<<5, 0,          /* objY, scaleY, imageH, unused */
+	10<<2, 1<<10, 32<<5, 0,          /* objX, scaleX, imageW, unused */
+	3<<2, 1<<10, 32<<5, 0,          /* objY, scaleY, imageH, unused */
 	GS_PIX2TMEM(32, G_IM_SIZ_16b), /* imageStride */
 	GS_PIX2TMEM(0, G_IM_SIZ_16b), /* imageAdrs */
 	G_IM_FMT_RGBA, /* imageFmt */
