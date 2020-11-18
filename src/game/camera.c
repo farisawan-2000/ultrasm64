@@ -3008,194 +3008,196 @@ void update_lakitu(struct Camera *c) {
 void update_camera(struct Camera *c) {
     UNUSED u8 unused[24];
 
-    gCamera = c;
-    update_camera_hud_status(c);
-    if (c->cutscene == 0) {
-        // Only process R_TRIG if 'fixed' is not selected in the menu
-        if (cam_select_alt_mode(0) == CAM_SELECTION_MARIO) {
-            if (gPlayer1Controller->buttonPressed & R_TRIG) {
-                if (set_cam_angle(0) == CAM_ANGLE_LAKITU) {
-                    set_cam_angle(CAM_ANGLE_MARIO);
-                } else {
-                    set_cam_angle(CAM_ANGLE_LAKITU);
+    if (c != NULL) {
+        gCamera = c;
+        update_camera_hud_status(c);
+        if (c->cutscene == 0) {
+            // Only process R_TRIG if 'fixed' is not selected in the menu
+            if (cam_select_alt_mode(0) == CAM_SELECTION_MARIO) {
+                if (gPlayer1Controller->buttonPressed & R_TRIG) {
+                    if (set_cam_angle(0) == CAM_ANGLE_LAKITU) {
+                        set_cam_angle(CAM_ANGLE_MARIO);
+                    } else {
+                        set_cam_angle(CAM_ANGLE_LAKITU);
+                    }
+                }
+            }
+            play_sound_if_cam_switched_to_lakitu_or_mario();
+        }
+
+        // Initialize the camera
+        sStatusFlags &= ~CAM_FLAG_FRAME_AFTER_CAM_INIT;
+        if (gCameraMovementFlags & CAM_MOVE_INIT_CAMERA) {
+            init_camera(c);
+            gCameraMovementFlags &= ~CAM_MOVE_INIT_CAMERA;
+            sStatusFlags |= CAM_FLAG_FRAME_AFTER_CAM_INIT;
+        }
+
+        // Store previous geometry information
+        sMarioGeometry.prevFloorHeight = sMarioGeometry.currFloorHeight;
+        sMarioGeometry.prevCeilHeight = sMarioGeometry.currCeilHeight;
+        sMarioGeometry.prevFloor = sMarioGeometry.currFloor;
+        sMarioGeometry.prevCeil = sMarioGeometry.currCeil;
+        sMarioGeometry.prevFloorType = sMarioGeometry.currFloorType;
+        sMarioGeometry.prevCeilType = sMarioGeometry.currCeilType;
+
+        find_mario_floor_and_ceil(&sMarioGeometry);
+        gCheckingSurfaceCollisionsForCamera = TRUE;
+        vec3f_copy(c->pos, gLakituState.goalPos);
+        vec3f_copy(c->focus, gLakituState.goalFocus);
+
+        c->yaw = gLakituState.yaw;
+        c->nextYaw = gLakituState.nextYaw;
+        c->mode = gLakituState.mode;
+        c->defMode = gLakituState.defMode;
+
+        camera_course_processing(c);
+        stub_camera_3(c);
+        sCButtonsPressed = find_c_buttons_pressed(sCButtonsPressed, gPlayer1Controller->buttonPressed,
+                                                  gPlayer1Controller->buttonDown);
+
+        if (c->cutscene != 0) {
+            sYawSpeed = 0;
+            play_cutscene(c);
+            sFramesSinceCutsceneEnded = 0;
+        } else {
+            // Clear the recent cutscene after 8 frames
+            if (gRecentCutscene != 0 && sFramesSinceCutsceneEnded < 8) {
+                sFramesSinceCutsceneEnded++;
+                if (sFramesSinceCutsceneEnded >= 8) {
+                    gRecentCutscene = 0;
+                    sFramesSinceCutsceneEnded = 0;
                 }
             }
         }
-        play_sound_if_cam_switched_to_lakitu_or_mario();
-    }
+        // If not in a cutscene, do mode processing
+        if (c->cutscene == 0) {
+            sYawSpeed = 0x400;
 
-    // Initialize the camera
-    sStatusFlags &= ~CAM_FLAG_FRAME_AFTER_CAM_INIT;
-    if (gCameraMovementFlags & CAM_MOVE_INIT_CAMERA) {
-        init_camera(c);
-        gCameraMovementFlags &= ~CAM_MOVE_INIT_CAMERA;
-        sStatusFlags |= CAM_FLAG_FRAME_AFTER_CAM_INIT;
-    }
+            if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
+                switch (c->mode) {
+                    case CAMERA_MODE_BEHIND_MARIO:
+                        mode_behind_mario_camera(c);
+                        break;
 
-    // Store previous geometry information
-    sMarioGeometry.prevFloorHeight = sMarioGeometry.currFloorHeight;
-    sMarioGeometry.prevCeilHeight = sMarioGeometry.currCeilHeight;
-    sMarioGeometry.prevFloor = sMarioGeometry.currFloor;
-    sMarioGeometry.prevCeil = sMarioGeometry.currCeil;
-    sMarioGeometry.prevFloorType = sMarioGeometry.currFloorType;
-    sMarioGeometry.prevCeilType = sMarioGeometry.currCeilType;
+                    case CAMERA_MODE_C_UP:
+                        mode_c_up_camera(c);
+                        break;
 
-    find_mario_floor_and_ceil(&sMarioGeometry);
-    gCheckingSurfaceCollisionsForCamera = TRUE;
-    vec3f_copy(c->pos, gLakituState.goalPos);
-    vec3f_copy(c->focus, gLakituState.goalFocus);
+                    case CAMERA_MODE_WATER_SURFACE:
+                        mode_water_surface_camera(c);
+                        break;
 
-    c->yaw = gLakituState.yaw;
-    c->nextYaw = gLakituState.nextYaw;
-    c->mode = gLakituState.mode;
-    c->defMode = gLakituState.defMode;
+                    case CAMERA_MODE_INSIDE_CANNON:
+                        mode_cannon_camera(c);
+                        break;
 
-    camera_course_processing(c);
-    stub_camera_3(c);
-    sCButtonsPressed = find_c_buttons_pressed(sCButtonsPressed, gPlayer1Controller->buttonPressed,
-                                              gPlayer1Controller->buttonDown);
+                    default:
+                        mode_mario_camera(c);
+                }
+            } else {
+                switch (c->mode) {
+                    case CAMERA_MODE_BEHIND_MARIO:
+                        mode_behind_mario_camera(c);
+                        break;
 
-    if (c->cutscene != 0) {
-        sYawSpeed = 0;
-        play_cutscene(c);
-        sFramesSinceCutsceneEnded = 0;
-    } else {
-        // Clear the recent cutscene after 8 frames
-        if (gRecentCutscene != 0 && sFramesSinceCutsceneEnded < 8) {
-            sFramesSinceCutsceneEnded++;
-            if (sFramesSinceCutsceneEnded >= 8) {
-                gRecentCutscene = 0;
-                sFramesSinceCutsceneEnded = 0;
+                    case CAMERA_MODE_C_UP:
+                        mode_c_up_camera(c);
+                        break;
+
+                    case CAMERA_MODE_WATER_SURFACE:
+                        mode_water_surface_camera(c);
+                        break;
+
+                    case CAMERA_MODE_INSIDE_CANNON:
+                        mode_cannon_camera(c);
+                        break;
+
+                    case CAMERA_MODE_8_DIRECTIONS:
+                        mode_8_directions_camera(c);
+                        break;
+
+                    case CAMERA_MODE_RADIAL:
+                        mode_radial_camera(c);
+                        break;
+
+                    case CAMERA_MODE_OUTWARD_RADIAL:
+                        mode_outward_radial_camera(c);
+                        break;
+
+                    case CAMERA_MODE_CLOSE:
+                        mode_lakitu_camera(c);
+                        break;
+
+                    case CAMERA_MODE_FREE_ROAM:
+                        mode_lakitu_camera(c);
+                        break;
+                    case CAMERA_MODE_BOSS_FIGHT:
+                        mode_boss_fight_camera(c);
+                        break;
+
+                    case CAMERA_MODE_PARALLEL_TRACKING:
+                        mode_parallel_tracking_camera(c);
+                        break;
+
+                    case CAMERA_MODE_SLIDE_HOOT:
+                        mode_slide_camera(c);
+                        break;
+
+                    case CAMERA_MODE_FIXED:
+                        mode_fixed_camera(c);
+                        break;
+
+                    case CAMERA_MODE_SPIRAL_STAIRS:
+                        mode_spiral_stairs_camera(c);
+                        break;
+                }
             }
         }
-    }
-    // If not in a cutscene, do mode processing
-    if (c->cutscene == 0) {
-        sYawSpeed = 0x400;
+        // Start any Mario-related cutscenes
+        start_cutscene(c, get_cutscene_from_mario_status(c));
+        stub_camera_2(c);
+        gCheckingSurfaceCollisionsForCamera = FALSE;
+        if (gCurrLevelNum != LEVEL_CASTLE) {
+            // If fixed camera is selected as the alternate mode, then fix the camera as long as the right
+            // trigger is held
+            if ((c->cutscene == 0 &&
+                (gPlayer1Controller->buttonDown & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED)
+                || (gCameraMovementFlags & CAM_MOVE_FIX_IN_PLACE)
+                || (sMarioCamState->action) == ACT_GETTING_BLOWN) {
 
-        if (sSelectionFlags & CAM_MODE_MARIO_ACTIVE) {
-            switch (c->mode) {
-                case CAMERA_MODE_BEHIND_MARIO:
-                    mode_behind_mario_camera(c);
-                    break;
+                // If this is the first frame that R_TRIG is held, play the "click" sound
+                if (c->cutscene == 0 && (gPlayer1Controller->buttonPressed & R_TRIG)
+                    && cam_select_alt_mode(0) == CAM_SELECTION_FIXED) {
+                    sCameraSoundFlags |= CAM_SOUND_FIXED_ACTIVE;
+                    play_sound_rbutton_changed();
+                }
 
-                case CAMERA_MODE_C_UP:
-                    mode_c_up_camera(c);
-                    break;
+                // Fixed mode only prevents Lakitu from moving. The camera pos still updates, so
+                // Lakitu will fly to his next position as normal whenever R_TRIG is released.
+                gLakituState.posHSpeed = 0.f;
+                gLakituState.posVSpeed = 0.f;
 
-                case CAMERA_MODE_WATER_SURFACE:
-                    mode_water_surface_camera(c);
-                    break;
-
-                case CAMERA_MODE_INSIDE_CANNON:
-                    mode_cannon_camera(c);
-                    break;
-
-                default:
-                    mode_mario_camera(c);
+                c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
+                c->yaw = c->nextYaw;
+                gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
+            } else {
+                // Play the "click" sound when fixed mode is released
+                if (sCameraSoundFlags & CAM_SOUND_FIXED_ACTIVE) {
+                    play_sound_rbutton_changed();
+                    sCameraSoundFlags &= ~CAM_SOUND_FIXED_ACTIVE;
+                }
             }
         } else {
-            switch (c->mode) {
-                case CAMERA_MODE_BEHIND_MARIO:
-                    mode_behind_mario_camera(c);
-                    break;
-
-                case CAMERA_MODE_C_UP:
-                    mode_c_up_camera(c);
-                    break;
-
-                case CAMERA_MODE_WATER_SURFACE:
-                    mode_water_surface_camera(c);
-                    break;
-
-                case CAMERA_MODE_INSIDE_CANNON:
-                    mode_cannon_camera(c);
-                    break;
-
-                case CAMERA_MODE_8_DIRECTIONS:
-                    mode_8_directions_camera(c);
-                    break;
-
-                case CAMERA_MODE_RADIAL:
-                    mode_radial_camera(c);
-                    break;
-
-                case CAMERA_MODE_OUTWARD_RADIAL:
-                    mode_outward_radial_camera(c);
-                    break;
-
-                case CAMERA_MODE_CLOSE:
-                    mode_lakitu_camera(c);
-                    break;
-
-                case CAMERA_MODE_FREE_ROAM:
-                    mode_lakitu_camera(c);
-                    break;
-                case CAMERA_MODE_BOSS_FIGHT:
-                    mode_boss_fight_camera(c);
-                    break;
-
-                case CAMERA_MODE_PARALLEL_TRACKING:
-                    mode_parallel_tracking_camera(c);
-                    break;
-
-                case CAMERA_MODE_SLIDE_HOOT:
-                    mode_slide_camera(c);
-                    break;
-
-                case CAMERA_MODE_FIXED:
-                    mode_fixed_camera(c);
-                    break;
-
-                case CAMERA_MODE_SPIRAL_STAIRS:
-                    mode_spiral_stairs_camera(c);
-                    break;
+            if ((gPlayer1Controller->buttonPressed & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED) {
+                play_sound_button_change_blocked();
             }
         }
+
+        update_lakitu(c);
+
+        gLakituState.lastFrameAction = sMarioCamState->action;
     }
-    // Start any Mario-related cutscenes
-    start_cutscene(c, get_cutscene_from_mario_status(c));
-    stub_camera_2(c);
-    gCheckingSurfaceCollisionsForCamera = FALSE;
-    if (gCurrLevelNum != LEVEL_CASTLE) {
-        // If fixed camera is selected as the alternate mode, then fix the camera as long as the right
-        // trigger is held
-        if ((c->cutscene == 0 &&
-            (gPlayer1Controller->buttonDown & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED)
-            || (gCameraMovementFlags & CAM_MOVE_FIX_IN_PLACE)
-            || (sMarioCamState->action) == ACT_GETTING_BLOWN) {
-
-            // If this is the first frame that R_TRIG is held, play the "click" sound
-            if (c->cutscene == 0 && (gPlayer1Controller->buttonPressed & R_TRIG)
-                && cam_select_alt_mode(0) == CAM_SELECTION_FIXED) {
-                sCameraSoundFlags |= CAM_SOUND_FIXED_ACTIVE;
-                play_sound_rbutton_changed();
-            }
-
-            // Fixed mode only prevents Lakitu from moving. The camera pos still updates, so
-            // Lakitu will fly to his next position as normal whenever R_TRIG is released.
-            gLakituState.posHSpeed = 0.f;
-            gLakituState.posVSpeed = 0.f;
-
-            c->nextYaw = calculate_yaw(gLakituState.focus, gLakituState.pos);
-            c->yaw = c->nextYaw;
-            gCameraMovementFlags &= ~CAM_MOVE_FIX_IN_PLACE;
-        } else {
-            // Play the "click" sound when fixed mode is released
-            if (sCameraSoundFlags & CAM_SOUND_FIXED_ACTIVE) {
-                play_sound_rbutton_changed();
-                sCameraSoundFlags &= ~CAM_SOUND_FIXED_ACTIVE;
-            }
-        }
-    } else {
-        if ((gPlayer1Controller->buttonPressed & R_TRIG) && cam_select_alt_mode(0) == CAM_SELECTION_FIXED) {
-            play_sound_button_change_blocked();
-        }
-    }
-
-    update_lakitu(c);
-
-    gLakituState.lastFrameAction = sMarioCamState->action;
 }
 
 /**

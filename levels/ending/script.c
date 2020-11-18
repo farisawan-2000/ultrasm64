@@ -17,6 +17,9 @@
 #include "levels/ending/header.h"
 
 extern const LevelScript marker[];
+extern const LevelScript level_intro_entry_2[];
+extern const LevelScript level_main_menu_entry_1[];
+extern const LevelScript level_intro_entry_1[];
 
 const LevelScript level_ending_entry[] = {
     /*0*/ INIT_LEVEL(),
@@ -32,11 +35,22 @@ const LevelScript level_ending_entry[] = {
     /*11*/ LOAD_AREA(/*area*/ 1),
     /*12*/ TRANSITION(/*transType*/ WARP_TRANSITION_FADE_FROM_STAR, /*time*/ 20, /*color*/ 0xFF, 0xFF, 0xFF),
     /*14*/ SLEEP(/*frames*/ 2),
-    /*15*/ CALL_LOOP(/*arg*/ 0, /*func*/ lvl_play_the_end_screen_sound),
+    CALL_LOOP(/*arg*/ 0, /*func*/ lvl_play_the_end_screen_sound),
+        // CALL(/*arg*/ 0, /*func*/ lvl_init_or_update),
+        // CALL_LOOP(/*arg*/ 1, /*func*/ lvl_init_or_update),
     // L1:
     /*17*/ SLEEP(/*frames*/ 1),
-    /*18*/ JUMP(level_ending_entry + 15),
+    EXIT_AND_EXECUTE(/*seg*/ 0x14, _introSegmentRomStart, _introSegmentRomEnd, level_intro_entry_1),
+    // /*18*/ JUMP(level_intro_entry_1),
+    // SLEEP_BEFORE_EXIT(1),
+    // EXIT(),
 };
 const LevelScript marker[] = {
-    END_AREA(),
+    STOP_MUSIC(/*fadeOutTime*/ 0x00BE),
+    TRANSITION(/*transType*/ WARP_TRANSITION_FADE_INTO_COLOR, /*time*/ 16, /*color*/ 0xFF, 0xFF, 0xFF),
+    SLEEP(/*frames*/ 16),
+    CLEAR_LEVEL(),
+    SLEEP(/*frames*/ 2),
+    SET_REG(/*value*/ 16),
+    EXIT_AND_EXECUTE(/*seg*/ 0x14, _menuSegmentRomStart, _menuSegmentRomEnd, level_main_menu_entry_1),
 };

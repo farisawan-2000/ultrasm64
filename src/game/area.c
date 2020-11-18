@@ -427,8 +427,7 @@ void draw_minigame_hud(void) {
     
 }
 
-extern int mini_mode;
-
+extern int mini_mode, shouldReturn;
 void render_game(void) {
     if (gCurrentArea != NULL && !gWarpTransition.pauseRendering) {
         geo_process_root(gCurrentArea->unk04, D_8032CE74, D_8032CE78, gFBSetColor);
@@ -472,7 +471,7 @@ void render_game(void) {
                 gWarpTransDelay--;
             }
         }
-    if (gCurrLevelNum == LEVEL_ENDING) {
+    if (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0) {
         clear_frame_buffer(0);
         render_minigame();
         if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING)
@@ -486,7 +485,7 @@ void render_game(void) {
         } else {
             clear_frame_buffer(gWarpTransFBSetColor);
         }
-        if (gCurrLevelNum == LEVEL_ENDING){
+        if (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0){
             clear_frame_buffer(0);
             render_minigame();
             if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING)

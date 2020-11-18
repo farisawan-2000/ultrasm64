@@ -25,6 +25,8 @@
 
 #include "minigame.h"
 
+int mini_mode = MODE_PICKING;
+
 Gfx s2d_init_dl[] = {
     gsDPPipeSync(),
     gsDPSetTexturePersp(G_TP_NONE),
@@ -222,6 +224,9 @@ void randomize_positions(void) {
             if (abs(x2 - x) < 30) x += 50;
             entities[i].s.objX = x;
             entities[i].s.objY = y;
+            if (mini_mode == MODE_SCATTERED || mini_mode == MODE_SCROLLSCATTER) {
+                entities[i].s.objY += (50 << 2);
+            }
         }
     }
 }
@@ -272,7 +277,7 @@ void scroll_chars(int mx, int my, int lx, int ly, int yx, int yy, int wx, int wy
     }
 }
 
-int mini_mode = MODE_PICKING;
+
 
 int foundChar = 0;
 
@@ -410,11 +415,12 @@ void render_minigame(void) {
     gSPDisplayList(gDisplayListHead++, s2d_init_dl);
 
     // cover the end cake lol
-    gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
-    gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
 
 
     if (mini_mode == MODE_PICKING) {
+        gDPPipeSync(gDisplayListHead++);
+        gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
+        gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
         int i = 0;
         if (latch_picking == 0) {
             picking_timer = random_range(50) + 50;
@@ -443,6 +449,9 @@ void render_minigame(void) {
         }
     }
     if (mini_mode == MODE_SLEUTH) {
+        gDPPipeSync(gDisplayListHead++);
+        gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
+        gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
         if (latch_sleuth == 0){
             populate_entities(cte);
 
@@ -503,7 +512,7 @@ void render_minigame(void) {
         if (secondTimer % 30 == 0 && foundChar == 0) {
             remaining_time--;
         }
-        if (remaining_time <= 0) reset(1);
+        if (remaining_time <= 0) mini_mode = MODE_GAMEOVER;
         if (clickMode == MODE_CLICK) {
             click();
             clickMode = MODE_NOTCLICK;
@@ -538,6 +547,30 @@ void render_minigame(void) {
                 remaining_time++;
             break;
         }
+    }
+    if (mini_mode == MODE_GAMEOVER) {
+        print_text_centered(320 / 2, 200, "GAME OVER");
+        print_text_centered(320 / 2, 184, "SCORE:");
+        print_text_fmt_int(320 / 2, 168, "%d", myScore);
+        print_text_centered(320 / 2, 142, "PRESS L TO RESTART");
+        print_text_centered(320 / 2, 118, "PRESS R TO QUIT");
+        if (gPlayer1Controller->buttonPressed & R_TRIG) {
+            // extern struct LevelCommand *sCurrentCmd;
+            // extern const LevelScript script_intro_L1[];
+            // extern const LevelScript marker[];
+            // gCurrLevelNum = LEVEL_WF;
+            // sCurrentCmd = segmented_to_virtual(marker);
+            extern int shouldReturn;
+            shouldReturn = -2;
+            gCurrLevelNum = LEVEL_MIN;
+            mini_mode = 99;
+        }
+        if (gPlayer1Controller->buttonPressed & L_TRIG) {
+            reset(1);
+        }
+    }
+    else if (mini_mode == 99) {
+        reset(1);
     }
 
     secondTimer++;

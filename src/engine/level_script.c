@@ -55,7 +55,7 @@ static uintptr_t *sStackBase = NULL;
 
 static s16 sScriptStatus;
 static s32 sRegister;
-static struct LevelCommand *sCurrentCmd;
+struct LevelCommand *sCurrentCmd;
 
 static s32 eval_script_op(s8 op, s32 arg) {
     s32 result = 0;
