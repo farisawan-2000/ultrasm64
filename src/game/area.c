@@ -481,7 +481,7 @@ void render_game(void) {
     if (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0) {
         clear_frame_buffer(0);
         render_minigame();
-        if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING){
+        if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING || mini_mode == MODE_PREGAMEOVER){
             draw_minigame_hud();
             disp_on_hud(cte);
         }
@@ -497,7 +497,7 @@ void render_game(void) {
         if (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0){
             clear_frame_buffer(0);
             render_minigame();
-            if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING) {
+            if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING || mini_mode == MODE_PREGAMEOVER){
                 draw_minigame_hud();
                 disp_on_hud(cte);
             }

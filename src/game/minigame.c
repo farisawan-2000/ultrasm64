@@ -443,9 +443,9 @@ void render_minigame(void) {
             if (picking_timer > 0)cte++;
         }
         picking_timer--;
-        
-        // if (cte > WARIO) cte = MARIO;
-        cte = LUIGI;
+
+        if (cte > WARIO) cte = MARIO;
+        // cte = LUIGI;
 
         if (picking_timer < -20) {
             // picking_timer = 0;
@@ -481,6 +481,7 @@ void render_minigame(void) {
             }
             latch_sleuth = 1;
         }
+        gDPPipeSync(gDisplayListHead++);
         gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
         gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2);
         gSPObjRenderMode(gDisplayListHead++, G_OBJRM_XLU | G_OBJRM_BILERP);
@@ -525,20 +526,21 @@ void render_minigame(void) {
         print_text(120, 210, "TIME");
         print_text_fmt_int(140, 190, "%d", remaining_time);
 
-        print_text(180, 210, "SCORE");
-        print_text_fmt_int(200, 190, "%d", myScore);
+        print_text(200, 210, "SCORE");
+        print_text_fmt_int(220, 190, "%d", myScore);
 
 
         if (secondTimer % 30 == 0 && foundChar == 0) {
             remaining_time--;
         }
-        if (remaining_time <= 0) mini_mode = MODE_GAMEOVER;
+        if (remaining_time <= 0) mini_mode = MODE_PREGAMEOVER;
         if (clickMode == MODE_CLICK) {
             click();
             clickMode = MODE_NOTCLICK;
         }
     }
     if (mini_mode == MODE_SCORING) {
+        gDPPipeSync(gDisplayListHead++);
         gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
         gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2);
         gSPObjRenderMode(gDisplayListHead++, G_OBJRM_XLU | G_OBJRM_BILERP);
@@ -548,8 +550,8 @@ void render_minigame(void) {
 
         print_text(120, 210, "TIME");
         print_text_fmt_int(140, 190, "%d", remaining_time);
-        print_text(180, 210, "SCORE");
-        print_text_fmt_int(200, 190, "%d", myScore);
+        print_text(200, 210, "SCORE");
+        print_text_fmt_int(220, 190, "%d", myScore);
 
         score_timer --;
         if (score_timer < 0) {
@@ -568,6 +570,9 @@ void render_minigame(void) {
                 remaining_time++;
             break;
         }
+    }
+    if (mini_mode == MODE_PREGAMEOVER) {
+        mini_mode = MODE_GAMEOVER;
     }
     if (mini_mode == MODE_GAMEOVER) {
         print_text_centered(320 / 2, 200, "GAME OVER");

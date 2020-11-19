@@ -20,6 +20,7 @@ enum modeSelect {
     MODE_PICKING,
     MODE_SLEUTH,
     MODE_SCORING,
+    MODE_PREGAMEOVER,
     MODE_GAMEOVER,
 };
 
