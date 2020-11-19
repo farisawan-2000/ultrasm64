@@ -213,16 +213,16 @@ u32 random_range(int e)  {
 void randomize_positions(void) {
     int i;
     entities[index_of_sleuth].s.objX = (random_range(320 - 32) << 2);
-    entities[index_of_sleuth].s.objY = ((random_range(174) + 3) << 2);
+    entities[index_of_sleuth].s.objY = ((random_range(174) + 5) << 2);
     for (i = 0; i < ent_count; i++) {
         if (i != index_of_sleuth) {
             int x = random_range(320);
-            int y = random_range(174) + 3;
+            int y = random_range(240);
 
             int x2 = entities[index_of_sleuth].s.objX >> 2;
             int y2 = entities[index_of_sleuth].s.objX >> 2;
 
-            while (abs(y2 - y) < 10) y = random_range(174) + 3;
+            while (abs(y2 - y) < 10) y = random_range(240);
             while (abs(x2 - x) < 10) x = random_range(320);
             entities[i].s.objX = x << 2;
             entities[i].s.objY = y << 2;
@@ -336,7 +336,7 @@ void draw_cursor(void) {
     if (curX > 320) {curX = 320;}
     if (curX < 0) {curX = 0;}
     if (curY > 180) {curY = 180;}
-    if (curY < 0) {curY = 0;}
+    if (curY < 5) {curY = 5;}
     if (gPlayer1Controller->buttonPressed & A_BUTTON) {
         clickMode = MODE_CLICK;
     }
@@ -376,7 +376,7 @@ uObjTxtr nullTex = {
 
 void clear_entities(void) {
     int i;
-    for (i = 0; i < ent_count; i++) {
+    for (i = 0; i < ENT_SIZE; i++) {
         entities[i] = nullSprite;
         textures[i] = nullTex;
     }
@@ -411,6 +411,15 @@ void click(void) {
 
 }
 
+void click_go(void) {
+    int c_x = curX + 8,
+        c_y = 240 - curY - 8;
+
+    if (c_x > 80 && c_x < 240)
+        if (c_y > 180 && c_y < 240)
+            reset(1);
+}
+
 int r;
 
 int scrol_scatter_array[8] = {0,0,0,0,0,0,0,0};
@@ -420,6 +429,52 @@ void minigame_init(void) {
     play_sequence(SEQ_PLAYER_LEVEL, SEQ_STREAMED_WANTED, 0);
     play_sequence(SEQ_PLAYER_SFX, SEQ_SOUND_PLAYER, 0);
 }
+
+void make_game_harder(void){
+    if (charPlaceMode == MODE_SCROLLUNIFORM || charPlaceMode == MODE_UNIFORM){
+        ent_count = 10 * 7;
+    }
+    else if (charPlaceMode == MODE_SCROLLSCATTER) {
+        ent_count = 100;
+    }
+    else {
+        switch(myScore) {
+            case 0 ... 10:
+                ent_count = 100;
+                break;
+            case 11:
+            case 12:
+            case 13:
+            case 14:
+            case 15:
+            case 16:
+            case 17:
+            case 18:
+            case 19:
+            case 20:
+            case 21:
+            case 22:
+            case 23:
+            case 24:
+                ent_count = myScore * 10;
+                break;
+            case 25:
+            default:
+            ent_count = ENT_SIZE;
+        }
+    }
+}
+
+#include "button.h"
+
+void render_bg(void) {
+    gDPPipeSync(gDisplayListHead++);
+    gDPSetRenderMode(gDisplayListHead++, G_RM_NOOP, G_RM_NOOP2);
+    gDPSetCycleType(gDisplayListHead++,G_CYC_FILL);
+    gDPSetFillColor(gDisplayListHead++, 0);
+    gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
+}
+
 
 void render_minigame(void) {
     int i;
@@ -432,9 +487,10 @@ void render_minigame(void) {
 
 
     if (mini_mode == MODE_PICKING) {
-        gDPPipeSync(gDisplayListHead++);
-        gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
-        gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
+        // gDPPipeSync(gDisplayListHead++);
+        // gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
+        // gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
+
         int i = 0;
         if (latch_picking == 0) {
             picking_timer = random_range(50) + 50;
@@ -455,22 +511,22 @@ void render_minigame(void) {
             // picking_timer = 0;
             mini_mode = MODE_SLEUTH;
         }
-        if (picking_timer == 0) play_sound(SOUND_MENU_CLICK_CHANGE_VIEW, gDefaultSoundArgs);
-        r = random_pos_neg();
-        charPlaceMode = random_u16() & 3;
-        if (charPlaceMode == MODE_SCROLLUNIFORM || charPlaceMode == MODE_UNIFORM)
-            ent_count = 10 * 7;
-        else if (charPlaceMode == MODE_SCROLLSCATTER) ent_count = 100;
-        else ent_count = ENT_SIZE;
-        clear_entities();
-        for (i = 0; i < 8; i++) {
-            scrol_scatter_array[i] = random_pos_neg();
+        if (picking_timer == 0){
+            play_sound(SOUND_MENU_CLICK_CHANGE_VIEW, gDefaultSoundArgs);
+            r = random_pos_neg();
+            charPlaceMode = random_u16() & 3;
+            make_game_harder();
+            clear_entities();
+            for (i = 0; i < 8; i++) {
+                scrol_scatter_array[i] = random_pos_neg();
+            }
         }
     }
     if (mini_mode == MODE_SLEUTH) {
-        gDPPipeSync(gDisplayListHead++);
-        gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
-        gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
+        render_bg();
+        // gDPPipeSync(gDisplayListHead++);
+        // gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
+        // gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
         if (latch_sleuth == 0){
             populate_entities(cte);
 
@@ -494,14 +550,10 @@ void render_minigame(void) {
             disp_chara(i);
         }
 
-
-
-
         // debug reset
         if (gPlayer1Controller->buttonPressed & L_TRIG) {
             reset(1);
         }
-
 
         if (foundChar == 0){
             switch (charPlaceMode) {
@@ -537,6 +589,7 @@ void render_minigame(void) {
 
         if (secondTimer % 30 == 0 && foundChar == 0) {
             remaining_time--;
+            play_sound(SOUND_GENERAL2_SWITCH_TICK_FAST, gDefaultSoundArgs);
         }
         if (remaining_time <= 0) {
             mini_mode = MODE_PREGAMEOVER;
@@ -591,34 +644,20 @@ void render_minigame(void) {
         prego_timer--;
         if (prego_timer < 0)
             mini_mode = MODE_GAMEOVER;
-        if (prego_timer >=15) {
-            print_text(120, 210, "TIME");
-            print_text_fmt_int(140, 190, "%d", remaining_time);
-            print_text(200, 210, "SCORE");
-            print_text_fmt_int(220, 190, "%d", myScore);
-        }
-        else {
-            print_text_centered(320 / 2, 200, "GAME OVER");
-        }
+        print_text(120, 210, "TIME");
+        print_text_fmt_int(140, 190, "%d", remaining_time);
+        print_text(200, 210, "SCORE");
+        print_text_fmt_int(220, 190, "%d", myScore);
     }
     if (mini_mode == MODE_GAMEOVER) {
-        print_text_centered(320 / 2, 200, "GAME OVER");
-        print_text_centered(320 / 2, 174, "SCORE:");
+        gSPDisplayList(gDisplayListHead++, play_again_bg_dl);
+        print_text_centered(320 / 2, 174, "SCORE");
         print_text_fmt_int(320 / 2, 158, "%d", myScore);
-        print_text_centered(320 / 2, 122, "PRESS L TO RESTART");
-        // if (gPlayer1Controller->buttonPressed & R_TRIG) {
-        //     // extern struct LevelCommand *sCurrentCmd;
-        //     // extern const LevelScript script_intro_L1[];
-        //     // extern const LevelScript marker[];
-        //     // gCurrLevelNum = LEVEL_WF;
-        //     // sCurrentCmd = segmented_to_virtual(marker);
-        //     extern int shouldReturn;
-        //     shouldReturn = -2;
-        //     gCurrLevelNum = LEVEL_MIN;
-        //     mini_mode = 99;
-        // }
-        if (gPlayer1Controller->buttonPressed & L_TRIG) {
-            reset(1);
+
+        draw_cursor();
+        if (clickMode == MODE_CLICK) {
+            click_go();
+            clickMode = MODE_NOTCLICK;
         }
     }
     else if (mini_mode == 99) {

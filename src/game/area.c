@@ -409,6 +409,7 @@ extern int curX, curY, index_of_sleuth;
 extern uObjSprite entities[4];
 void draw_minigame_hud(void) {
     gDPPipeSync(gDisplayListHead++);
+    gDPSetRenderMode(gDisplayListHead++, G_RM_NOOP, G_RM_NOOP2);
     gDPSetCycleType(gDisplayListHead++,G_CYC_FILL);
     gDPSetFillColor(gDisplayListHead++, (GPACK_RGBA5551(238, 252, 40, 1) << 16) | GPACK_RGBA5551(238, 252, 40, 1));
     gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 50);
@@ -446,7 +447,9 @@ int myCondition(void) {
 }
 
 int shouldRender(void) {
-    return (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0);
+    return (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0
+        && !(gPlayer1Controller->buttonDown & START_BUTTON)
+        );
 }
 
 void render_game(void) {

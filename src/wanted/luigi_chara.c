@@ -22,8 +22,8 @@ uObjMtx luigi_mtx = {
 	1<<10,    1<<10           /* BaseScaleX, BaseScaleY */
 };
 uObjSprite luigi_obj = {
-	20<<2, 1<<10, 32<<5, 0,          /* objX, scaleX, imageW, unused */
-	13<<2, 1<<10, 32<<5, 0,          /* objY, scaleY, imageH, unused */
+	10<<2, 1<<10, 32<<5, 0,          /* objX, scaleX, imageW, unused */
+	3<<2, 1<<10, 32<<5, 0,          /* objY, scaleY, imageH, unused */
 	GS_PIX2TMEM(32, G_IM_SIZ_16b), /* imageStride */
 	GS_PIX2TMEM(0, G_IM_SIZ_16b), /* imageAdrs */
 	G_IM_FMT_RGBA, /* imageFmt */
@@ -31,13 +31,14 @@ uObjSprite luigi_obj = {
 	0, /* imagePal */
 	0, /* imageFlags */
 };
+
 Gfx luigi_sprite_dl[] = {
 	gsDPPipeSync(),
 	gsDPSetCycleType(G_CYC_1CYCLE),
 	gsDPSetRenderMode(G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2),
 	gsSPObjRenderMode(G_OBJRM_XLU | G_OBJRM_BILERP),
 	gsSPObjLoadTxtr(&luigi_tex),
-	
+	gsSPObjMatrix(&luigi_mtx),
 	gsSPObjSprite(&luigi_obj),
 	gsSPEndDisplayList(),
 };// 32 32

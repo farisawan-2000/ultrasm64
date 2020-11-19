@@ -38,3 +38,4 @@
 #include "src/wanted/luigi_post.c"
 #include "src/wanted/yoshi_post.c"
 #include "src/wanted/wario_post.c"
+#include "src/wanted/pagan.c"
