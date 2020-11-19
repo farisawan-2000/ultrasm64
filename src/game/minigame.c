@@ -95,7 +95,7 @@ int cte = LUIGI;
 
 
 
-#define ENT_SIZE 100
+#define ENT_SIZE 0x100
 
 int ent_count = ENT_SIZE;
 uObjSprite entities[ENT_SIZE];
@@ -208,22 +208,24 @@ u32 random_range(int e)  {
 
 #define abs(x) ((x) < 0 ? -(x) : (x))
 
+#define SCATTER_DIST 25
+
 void randomize_positions(void) {
     int i;
-    entities[index_of_sleuth].s.objX = (random_range(320) << 2);
-    entities[index_of_sleuth].s.objY = (random_range(174) << 2);
+    entities[index_of_sleuth].s.objX = (random_range(320 - 32) << 2);
+    entities[index_of_sleuth].s.objY = ((random_range(174) + 3) << 2);
     for (i = 0; i < ent_count; i++) {
         if (i != index_of_sleuth) {
-            int x = (random_range(320) << 2);
-            int y = (random_range(174) << 2);
+            int x = random_range(320);
+            int y = random_range(174) + 3;
 
-            int x2 = entities[index_of_sleuth].s.objX;
-            int y2 = entities[index_of_sleuth].s.objX;
+            int x2 = entities[index_of_sleuth].s.objX >> 2;
+            int y2 = entities[index_of_sleuth].s.objX >> 2;
 
-            if (abs(y2 - y) < 30) y += 50;
-            if (abs(x2 - x) < 30) x += 50;
-            entities[i].s.objX = x;
-            entities[i].s.objY = y;
+            while (abs(y2 - y) < 10) y = random_range(174) + 3;
+            while (abs(x2 - x) < 10) x = random_range(320);
+            entities[i].s.objX = x << 2;
+            entities[i].s.objY = y << 2;
             if (mini_mode == MODE_SCATTERED || mini_mode == MODE_SCROLLSCATTER) {
                 entities[i].s.objY += (50 << 2);
             }
@@ -238,7 +240,7 @@ void uniform_positions(void) {
     // entities[index_of_sleuth].s.objX = (random_range(320) / MOD_DEFINE_LOL) << 2;
     // entities[index_of_sleuth].s.objY = (random_range(174) / MOD_DEFINE_LOL) << 2;
     for (i = 0; i < DEFINE_LOL; i++) {
-        for (j = 0; j < DEFINE_LOL; j++) {
+        for (j = 0; j < DEFINE_LOL + 1; j++) {
             int y = (i * DEFINE_LOL) + j;
             if (y < ent_count) {
                 entities[y].s.objX = (j * 32) << 2;
@@ -281,8 +283,9 @@ void scroll_chars(int mx, int my, int lx, int ly, int yx, int yy, int wx, int wy
 
 int foundChar = 0;
 
+
 void disp_chara(int x) {
-    if (foundChar == 1) {
+    if (foundChar == 1 || mini_mode == MODE_PREGAMEOVER) {
         if (x == index_of_sleuth) {
             gSPObjLoadTxtr(gDisplayListHead++, &textures[x]);
             gSPObjSprite(gDisplayListHead++, &entities[x]);
@@ -307,7 +310,7 @@ int clickMode = MODE_NOTCLICK;
 
 
 int score_timer = 0;
-
+int prego_timer = 0;
 void reset(int gameover) {
     latch_sleuth = 0;
     latch_picking = 0;
@@ -323,6 +326,7 @@ void reset(int gameover) {
     clickMode = MODE_NOTCLICK;
     foundChar = 0;
     score_timer = 0;
+    prego_timer = 0;
 }
 
 void draw_cursor(void) {
@@ -386,10 +390,10 @@ void click(void) {
         c_y = 240 - curY - 8;
     
     // adjust difficulty here
-    int ent_ulx = (entities[index_of_sleuth].s.objX >> 2) + 8,
-        ent_uly = (entities[index_of_sleuth].s.objY >> 2) + 8,
-        ent_lrx = (entities[index_of_sleuth].s.objX >> 2) + 52,
-        ent_lry = (entities[index_of_sleuth].s.objY >> 2) + 52;
+    int ent_ulx = (entities[index_of_sleuth].s.objX >> 2),
+        ent_uly = (entities[index_of_sleuth].s.objY >> 2),
+        ent_lrx = (entities[index_of_sleuth].s.objX >> 2) + 32,
+        ent_lry = (entities[index_of_sleuth].s.objY >> 2) + 32;
         
 
     if (c_x < ent_lrx && c_x > ent_ulx && c_y < ent_lry && c_y > ent_uly) {
@@ -456,6 +460,7 @@ void render_minigame(void) {
         charPlaceMode = random_u16() & 3;
         if (charPlaceMode == MODE_SCROLLUNIFORM || charPlaceMode == MODE_UNIFORM)
             ent_count = 10 * 7;
+        else if (charPlaceMode == MODE_SCROLLSCATTER) ent_count = 100;
         else ent_count = ENT_SIZE;
         clear_entities();
         for (i = 0; i < 8; i++) {
@@ -533,7 +538,10 @@ void render_minigame(void) {
         if (secondTimer % 30 == 0 && foundChar == 0) {
             remaining_time--;
         }
-        if (remaining_time <= 0) mini_mode = MODE_PREGAMEOVER;
+        if (remaining_time <= 0) {
+            mini_mode = MODE_PREGAMEOVER;
+            prego_timer = SCORE_TIME;
+        }
         if (clickMode == MODE_CLICK) {
             click();
             clickMode = MODE_NOTCLICK;
@@ -572,25 +580,43 @@ void render_minigame(void) {
         }
     }
     if (mini_mode == MODE_PREGAMEOVER) {
-        mini_mode = MODE_GAMEOVER;
+        remaining_time = 0;
+        gDPPipeSync(gDisplayListHead++);
+        gDPSetCycleType(gDisplayListHead++, G_CYC_1CYCLE);
+        gDPSetRenderMode(gDisplayListHead++, G_RM_XLU_SPRITE, G_RM_XLU_SPRITE2);
+        gSPObjRenderMode(gDisplayListHead++, G_OBJRM_XLU | G_OBJRM_BILERP);
+        for (i = 0; i < ENT_SIZE; i++) {
+            disp_chara(i);
+        }
+        prego_timer--;
+        if (prego_timer < 0)
+            mini_mode = MODE_GAMEOVER;
+        if (prego_timer >=15) {
+            print_text(120, 210, "TIME");
+            print_text_fmt_int(140, 190, "%d", remaining_time);
+            print_text(200, 210, "SCORE");
+            print_text_fmt_int(220, 190, "%d", myScore);
+        }
+        else {
+            print_text_centered(320 / 2, 200, "GAME OVER");
+        }
     }
     if (mini_mode == MODE_GAMEOVER) {
         print_text_centered(320 / 2, 200, "GAME OVER");
-        print_text_centered(320 / 2, 184, "SCORE:");
-        print_text_fmt_int(320 / 2, 168, "%d", myScore);
-        print_text_centered(320 / 2, 142, "PRESS L TO RESTART");
-        print_text_centered(320 / 2, 118, "PRESS R TO QUIT");
-        if (gPlayer1Controller->buttonPressed & R_TRIG) {
-            // extern struct LevelCommand *sCurrentCmd;
-            // extern const LevelScript script_intro_L1[];
-            // extern const LevelScript marker[];
-            // gCurrLevelNum = LEVEL_WF;
-            // sCurrentCmd = segmented_to_virtual(marker);
-            extern int shouldReturn;
-            shouldReturn = -2;
-            gCurrLevelNum = LEVEL_MIN;
-            mini_mode = 99;
-        }
+        print_text_centered(320 / 2, 174, "SCORE:");
+        print_text_fmt_int(320 / 2, 158, "%d", myScore);
+        print_text_centered(320 / 2, 122, "PRESS L TO RESTART");
+        // if (gPlayer1Controller->buttonPressed & R_TRIG) {
+        //     // extern struct LevelCommand *sCurrentCmd;
+        //     // extern const LevelScript script_intro_L1[];
+        //     // extern const LevelScript marker[];
+        //     // gCurrLevelNum = LEVEL_WF;
+        //     // sCurrentCmd = segmented_to_virtual(marker);
+        //     extern int shouldReturn;
+        //     shouldReturn = -2;
+        //     gCurrLevelNum = LEVEL_MIN;
+        //     mini_mode = 99;
+        // }
         if (gPlayer1Controller->buttonPressed & L_TRIG) {
             reset(1);
         }

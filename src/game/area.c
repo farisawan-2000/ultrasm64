@@ -414,15 +414,17 @@ void draw_minigame_hud(void) {
     gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 50);
     gDPPipeSync(gDisplayListHead++);
 
-    #ifdef DEBUG
+    // #ifdef DEBUG
+    if (gPlayer1Controller->buttonDown & START_BUTTON) {
         gDPFillRectangle(gDisplayListHead++, curX, 240 - curY - 16, curX + 16, 240 - curY);
         gDPFillRectangle(gDisplayListHead++,
-        (entities[index_of_sleuth].s.objX >> 2) + 8,
-        (entities[index_of_sleuth].s.objY >> 2) + 8,
-        (entities[index_of_sleuth].s.objX >> 2) + 52,
-        (entities[index_of_sleuth].s.objY >> 2) + 52
+        (entities[index_of_sleuth].s.objX >> 2),
+        (entities[index_of_sleuth].s.objY >> 2),
+        (entities[index_of_sleuth].s.objX >> 2) + 32,
+        (entities[index_of_sleuth].s.objY >> 2) + 32
         );
-    #endif
+    }
+    // #endif
 
     
 }
@@ -435,6 +437,18 @@ void disp_on_hud(int ch) {
 
 
 extern int mini_mode, shouldReturn, cte;
+
+int myCondition(void) {
+    return (mini_mode == MODE_SLEUTH
+         || mini_mode == MODE_SCORING
+         || mini_mode == MODE_PREGAMEOVER
+         );
+}
+
+int shouldRender(void) {
+    return (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0);
+}
+
 void render_game(void) {
     if (gCurrentArea != NULL && !gWarpTransition.pauseRendering) {
         geo_process_root(gCurrentArea->unk04, D_8032CE74, D_8032CE78, gFBSetColor);
@@ -478,10 +492,10 @@ void render_game(void) {
                 gWarpTransDelay--;
             }
         }
-    if (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0) {
+    if (shouldRender()) {
         clear_frame_buffer(0);
         render_minigame();
-        if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING || mini_mode == MODE_PREGAMEOVER){
+        if (myCondition()){
             draw_minigame_hud();
             disp_on_hud(cte);
         }
@@ -494,10 +508,10 @@ void render_game(void) {
         } else {
             clear_frame_buffer(gWarpTransFBSetColor);
         }
-        if (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0){
+        if (shouldRender()){
             clear_frame_buffer(0);
             render_minigame();
-            if (mini_mode == MODE_SLEUTH || mini_mode == MODE_SCORING || mini_mode == MODE_PREGAMEOVER){
+            if (myCondition()){
                 draw_minigame_hud();
                 disp_on_hud(cte);
             }
