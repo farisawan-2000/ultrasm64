@@ -1,10 +1,12 @@
-Playtesters:
+Playtesting/Bugfinding:
 Arthurtilly
 MrComit
 Wiseguy
 
-Console Testers:
+Console Testing:
 Wiseguy
 
-Troubleshooting:
+Troubleshooting and Technical Support:
 Wiseguy
+Ally
+Scuttlebug Raiser

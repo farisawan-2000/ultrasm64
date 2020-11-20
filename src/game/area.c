@@ -432,10 +432,17 @@ void draw_minigame_hud(void) {
     if (gPlayer1Controller->buttonDown & START_BUTTON) {
         gDPFillRectangle(gDisplayListHead++, curX, 240 - curY - 16, curX + 16, 240 - curY);
         gDPFillRectangle(gDisplayListHead++,
+        #ifdef JABO
         (entities[index_of_sleuth].s.objX >> 2) - JABO_MOMENT_HITBOX,
         (entities[index_of_sleuth].s.objY >> 2) - JABO_MOMENT_HITBOX,
         (entities[index_of_sleuth].s.objX >> 2) + 32 - JABO_MOMENT_HITBOX,
         (entities[index_of_sleuth].s.objY >> 2) + 32 - JABO_MOMENT_HITBOX
+        #else
+        (entities[index_of_sleuth].s.objX >> 2),
+        (entities[index_of_sleuth].s.objY >> 2),
+        (entities[index_of_sleuth].s.objX >> 2) + 32,
+        (entities[index_of_sleuth].s.objY >> 2) + 32
+        #endif
         );
     }
     #endif

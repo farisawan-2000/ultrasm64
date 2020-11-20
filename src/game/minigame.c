@@ -136,9 +136,38 @@ uObjTxtr *rngTimeTex[4] = {
 };
 
 index_of_sleuth = 0;
+u32 random_range(int);
 void populate_entities(s32 charNum) {
     // int rd = LUIGI;
     int i;
+    index_of_sleuth = random_range(ent_count - 1);
+    for (i = 0; i < ent_count; i++) {
+        if (i == index_of_sleuth) {
+            if (is_jabo() && myScore > 25 && charNum == MARIO) {
+                entities[i] = *((uObjSprite*)segmented_to_virtual(&honoka_obj));
+                textures[i] = *((uObjTxtr*)segmented_to_virtual(&honoka_tex));
+            } else {
+                entities[i] = *((uObjSprite*)segmented_to_virtual(rngTimeSprite[charNum]));
+                textures[i] = *((uObjTxtr*)segmented_to_virtual(rngTimeTex[charNum]));
+            }
+            entTracker[i] = charNum;
+        }
+        else {
+            int x = random_u16() % (WARIO + 1);
+            if (x == charNum) x++;
+            if (x > WARIO) x = MARIO;
+            if (is_jabo() && myScore > 25 && x == MARIO) {
+                entities[i] = *((uObjSprite*)segmented_to_virtual(&honoka_obj));
+                textures[i] = *((uObjTxtr*)segmented_to_virtual(&honoka_tex));
+            } else {
+                entities[i] = *((uObjSprite*)segmented_to_virtual(rngTimeSprite[x]));
+                textures[i] = *((uObjTxtr*)segmented_to_virtual(rngTimeTex[x]));
+            }
+            entTracker[i] = x;
+        }
+    }
+    #if 0
+    // oh god why did i ever think writing this was a good idea
     for (i = 0; i < ent_count; i++) {
         int rd = random_u16() % (WARIO + 1);
         switch(rd) {
@@ -221,6 +250,7 @@ void populate_entities(s32 charNum) {
             break;
         }
     }
+    #endif
     
 }
 
@@ -237,14 +267,14 @@ u32 random_range(int e)  {
 void randomize_positions(void) {
     int i;
     entities[index_of_sleuth].s.objX = (random_range(320 - 32) << 2);
-    entities[index_of_sleuth].s.objY = ((random_range(169) + 50) << 2);
+    entities[index_of_sleuth].s.objY = ((random_range(160) + 50) << 2);
     for (i = 0; i < ent_count; i++) {
         if (i != index_of_sleuth) {
             int x = random_range(320);
             int y = random_range(240);
 
             int x2 = entities[index_of_sleuth].s.objX >> 2;
-            int y2 = entities[index_of_sleuth].s.objX >> 2;
+            int y2 = entities[index_of_sleuth].s.objY >> 2;
 
             while (abs(y2 - y) < 14) y = random_range(240);
             while (abs(x2 - x) < 14) x = random_range(320);
@@ -272,10 +302,13 @@ void randomize_positions(void) {
 
 void uniform_positions(void) {
     int i, j;
+    int xd;
+    if (mini_mode == MODE_UNIFORM) xd = DEFINE_LOL;
+    else xd = DEFINE_LOL + 1;
     // entities[index_of_sleuth].s.objX = (random_range(320) / MOD_DEFINE_LOL) << 2;
     // entities[index_of_sleuth].s.objY = (random_range(174) / MOD_DEFINE_LOL) << 2;
     for (i = 0; i < DEFINE_LOL; i++) {
-        for (j = 0; j < DEFINE_LOL + 1; j++) {
+        for (j = 0; j < xd; j++) {
             int y = (i * DEFINE_LOL) + j;
             if (y < ent_count) {
                 entities[y].s.objX = (j * 32) << 2;
@@ -465,8 +498,11 @@ void click(void) {
             play_sound(SOUND_MARIO_WAAAOOOW, gDefaultSoundArgs);
     }
     else {
-        remaining_time -= 5;
+        remaining_time -= 10;
         play_sound(SOUND_MENU_CAMERA_BUZZ, gDefaultSoundArgs);
+        if (cte == MARIO) {
+            play_sound(SOUND_MARIO_HAHA, gDefaultSoundArgs);
+        }
     }
 
 }
@@ -496,8 +532,11 @@ void minigame_init(void) {
 }
 
 void make_game_harder(void){
-    if (charPlaceMode == MODE_SCROLLUNIFORM || charPlaceMode == MODE_UNIFORM){
+    if (charPlaceMode == MODE_SCROLLUNIFORM) {
         ent_count = 10 * 7;
+    }
+    else if (charPlaceMode == MODE_UNIFORM) {
+        ent_count = 10 * 6;
     }
     else if (charPlaceMode == MODE_SCROLLSCATTER) {
         ent_count = 100;
@@ -607,7 +646,7 @@ void render_minigame(void) {
                 default:
                     charPlaceMode = random_u16() % 5;
             }
-            // charPlaceMode = MODE_SINESCATTER;
+            // charPlaceMode = MODE_SCATTERED;
             make_game_harder();
             clear_entities();
             for (i = 0; i < 8; i++) {
@@ -643,10 +682,10 @@ void render_minigame(void) {
 
         // debug reset
         if (gPlayer1Controller->buttonDown & L_TRIG) {
-            // myScore = 0xFFFFFFFF - 6000;
-            // reset(1);
-            // print_text_fmt_int(50, 50, "%d %d", entities[index_of_sleuth].s.objX >> 2,
-                // entities[index_of_sleuth].s.objY >> 2);
+            // myScore = 24;
+            // // reset(1);
+            // print_text_fmt_int(50, 50, "%d", entities[index_of_sleuth].s.objX >> 2);
+            // print_text_fmt_int(50, 70, "%d",entities[index_of_sleuth].s.objY >> 2);
         }
         // print_text_fmt_int(50, 50, "%d", is_jabo());
 
