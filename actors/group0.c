@@ -5,6 +5,8 @@
 
 #include "make_const_nonconst.h"
 
+#include "src/game/minigame.h"
+
 // Note: This bin does not use bin IDs, unlike the other segmented bins.
 #include "mario/model.inc.c"
 
@@ -26,11 +28,23 @@
 
 #include "sparkle_animation/model.inc.c"
 
+typedef int16_t    s102;
+#define qss102(n) ((s102)((n)*0x0004))
+
+// #ifdef JABO
+// #define SPR_X (10 - 16)
+// #define SPR_Y (3 - 16)
+// #else
+#define SPR_X (10)
+#define SPR_Y (3)
+// #endif
+
 
 #include "src/wanted/mario_chara.c"
 #include "src/wanted/luigi_chara.c"
 #include "src/wanted/yoshi_chara.c"
 #include "src/wanted/wario_chara.c"
+#include "src/wanted/honoka_chara.c"
 
 #include "src/wanted/poster.c"
 
@@ -38,4 +52,5 @@
 #include "src/wanted/luigi_post.c"
 #include "src/wanted/yoshi_post.c"
 #include "src/wanted/wario_post.c"
+#include "src/wanted/honoka_post.c"
 #include "src/wanted/pagan.c"

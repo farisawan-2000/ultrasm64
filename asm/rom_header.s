@@ -27,7 +27,7 @@
 .endif
 .word  0x00000000               /* Unknown */
 .word  0x0000004E               /* Cartridge */
-.ascii "WA"                     /* Cartridge ID */
+.ascii "SM"                     /* Cartridge ID */
 
 /* Region */
 .if VERSION_US == 1

@@ -190,6 +190,16 @@ static void set_coin_score_age(s32 fileIndex, s32 courseIndex, s32 age) {
     gSaveBuffer.menuData[0].coinScoreAges[fileIndex] |= age << (2 * courseIndex);
 }
 
+
+void save_score(int a) {
+    gSaveBuffer.files[3][0].minigame_score = a;
+    gSaveFileModified = TRUE;
+}
+
+int gave_score(void) {
+    return gSaveBuffer.files[3][0].minigame_score;
+}
+
 /**
  * Mark a coin score for a save file as the newest out of all save files.
  */
@@ -242,7 +252,7 @@ static void restore_save_file_data(s32 fileIndex, s32 srcSlot) {
 }
 
 void save_file_do_save(s32 fileIndex) {
-    if (gSaveFileModified) {
+    // if (gSaveFileModified) {
         // Compute checksum
         add_save_block_signature(&gSaveBuffer.files[fileIndex][0],
                                  sizeof(gSaveBuffer.files[fileIndex][0]), SAVE_FILE_MAGIC);
@@ -255,8 +265,8 @@ void save_file_do_save(s32 fileIndex) {
         write_eeprom_data(gSaveBuffer.files[fileIndex], sizeof(gSaveBuffer.files[fileIndex]));
 
         gSaveFileModified = FALSE;
-    }
-
+    // }
+// 
     save_main_menu_data();
 }
 
@@ -529,7 +539,7 @@ void save_file_set_cap_pos(s16 x, s16 y, s16 z) {
 
     saveFile->capLevel = gCurrLevelNum;
     saveFile->capArea = gCurrAreaIndex;
-    vec3s_set(saveFile->capPos, x, y, z);
+    // vec3s_set(saveFile->capPos, x, y, z);
     save_file_set_flags(SAVE_FLAG_CAP_ON_GROUND);
 }
 
@@ -539,7 +549,7 @@ s32 save_file_get_cap_pos(Vec3s capPos) {
 
     if (saveFile->capLevel == gCurrLevelNum && saveFile->capArea == gCurrAreaIndex
         && (flags & SAVE_FLAG_CAP_ON_GROUND)) {
-        vec3s_copy(capPos, saveFile->capPos);
+        // vec3s_copy(capPos, saveFile->capPos);
         return TRUE;
     }
     return FALSE;

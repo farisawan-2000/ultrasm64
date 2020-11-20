@@ -365,12 +365,22 @@ void play_transition_after_delay(s16 transType, s16 time, u8 red, u8 green, u8 b
 #include "luigi_header.h"
 #include "yoshi_header.h"
 #include "wario_header.h"
+#include "honoka_chara.h"
 #include "minigame.h"
+extern int myScore;
+extern int is_jabo(void);
+
 
 void place_chara(s32 charNum) {
+    
     switch (charNum) {
         case MARIO:
-            gSPDisplayList(gDisplayListHead++, mario_sprite_dl);
+            if (is_jabo() && myScore > 25) {
+                gSPDisplayList(gDisplayListHead++, honoka_sprite_dl);
+            }
+            else {
+                gSPDisplayList(gDisplayListHead++, mario_sprite_dl);
+            }
             break;
         case LUIGI:
             gSPDisplayList(gDisplayListHead++, luigi_sprite_dl);
@@ -407,6 +417,9 @@ void mtx_chara(s32 charNum) {
 
 extern int curX, curY, index_of_sleuth;
 extern uObjSprite entities[4];
+#include "text_strings.h"
+
+char credit_text[] = {CREDIT_TEXT};
 void draw_minigame_hud(void) {
     gDPPipeSync(gDisplayListHead++);
     gDPSetRenderMode(gDisplayListHead++, G_RM_NOOP, G_RM_NOOP2);
@@ -415,17 +428,17 @@ void draw_minigame_hud(void) {
     gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 50);
     gDPPipeSync(gDisplayListHead++);
 
-    // #ifdef DEBUG
+    #ifdef DEBUG
     if (gPlayer1Controller->buttonDown & START_BUTTON) {
         gDPFillRectangle(gDisplayListHead++, curX, 240 - curY - 16, curX + 16, 240 - curY);
         gDPFillRectangle(gDisplayListHead++,
-        (entities[index_of_sleuth].s.objX >> 2),
-        (entities[index_of_sleuth].s.objY >> 2),
-        (entities[index_of_sleuth].s.objX >> 2) + 32,
-        (entities[index_of_sleuth].s.objY >> 2) + 32
+        (entities[index_of_sleuth].s.objX >> 2) - JABO_MOMENT_HITBOX,
+        (entities[index_of_sleuth].s.objY >> 2) - JABO_MOMENT_HITBOX,
+        (entities[index_of_sleuth].s.objX >> 2) + 32 - JABO_MOMENT_HITBOX,
+        (entities[index_of_sleuth].s.objY >> 2) + 32 - JABO_MOMENT_HITBOX
         );
     }
-    // #endif
+    #endif
 
     
 }
@@ -448,8 +461,15 @@ int myCondition(void) {
 
 int shouldRender(void) {
     return (gCurrLevelNum == LEVEL_ENDING && shouldReturn == 0
-        && !(gPlayer1Controller->buttonDown & START_BUTTON)
         );
+}
+
+void credits(void) {
+    extern Gfx dl_ia_text_begin[], dl_ia_text_end[];
+    gSPDisplayList(gDisplayListHead++, dl_ia_text_begin);
+    print_generic_string(10, 215, credit_text);
+    gSPDisplayList(gDisplayListHead++, dl_ia_text_end);
+    gSPDisplayList(gDisplayListHead++, s2d_init_dl);
 }
 
 void render_game(void) {
@@ -503,6 +523,7 @@ void render_game(void) {
             disp_on_hud(cte);
         }
         render_text_labels();
+        if (mini_mode == MODE_GAMEOVER) credits();
     }
     } else {
         render_text_labels();
@@ -520,6 +541,7 @@ void render_game(void) {
             }
             render_text_labels();
         }
+        if (mini_mode == MODE_GAMEOVER) credits();
     }
 
 

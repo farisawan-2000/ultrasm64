@@ -29,6 +29,7 @@
 #define TEXT_CONSOLE_8MB _("If you're using an N64 console, then you will need to buy an\nExpansion Pak to play this ROM hack.")
 #define TEXT_PJ64 _("If you are using PJ64 1.6, go to:\nOptions > Settings > Rom Settings Tab > Memory Size\nthen select 8 MB from the drop-down box.")
 #define TEXT_PJ64_2 _("If you are using PJ64 2.X, go to:\nOptions > Settings > Config: > Memory Size, select 8 MB")
+#define CREDIT_TEXT _("WANTED 64 by someone2639")
 
 #if defined(VERSION_JP) || defined(VERSION_SH)
 
@@ -51,6 +52,8 @@
 
 // Menu Options
 #define TEXT_SCORE _("スコア")
+
+
 #define TEXT_COPY _("コピー")
 #define TEXT_ERASE _("けす")
 

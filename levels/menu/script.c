@@ -51,7 +51,7 @@ const LevelScript level_main_menu_entry_1[] = {
     CALL(/*arg*/ 0, /*func*/ lvl_init_menu_values_and_cursor_pos),
     CALL_LOOP(/*arg*/ 0, /*func*/ lvl_update_obj_and_load_file_selected),
     GET_OR_SET(/*op*/ OP_SET, /*var*/ VAR_CURR_SAVE_FILE_NUM),
-    JUMP_IF(OP_EQ, 1, goto_minigame),
+    JUMP_IF(OP_EQ, 1, goto_game),
     JUMP_IF(OP_EQ, 2, goto_game),
     JUMP_IF(OP_EQ, 3, goto_game),
     JUMP_IF(OP_EQ, 4, goto_minigame),

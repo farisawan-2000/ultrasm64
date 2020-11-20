@@ -16,14 +16,26 @@
 #include "luigi_header.h"
 #include "yoshi_header.h"
 #include "wario_header.h"
+#include "honoka_chara.h"
 
 #include "poster.h"
 #include "mario_poster.h"
 #include "luigi_poster.h"
 #include "yoshi_poster.h"
 #include "wario_poster.h"
+#include "honoka_post.h"
 
 #include "minigame.h"
+
+
+#include "buffers/framebuffers.h"
+
+
+
+int is_jabo(void) {
+    return (gFrameBuffer0[0] == 0x2639);
+}
+
 
 int mini_mode = MODE_PICKING;
 
@@ -45,10 +57,16 @@ int random_pos_neg(void) {
 }
 
 // render chara and posters
+extern u32 myScore;
 void scroll_pick_chara(s32 charNum) {
     switch (charNum) {
         case MARIO:
-            gSPDisplayList(gDisplayListHead++, mario_poster_bg_dl);
+            if (is_jabo() && myScore > 25){
+                gSPDisplayList(gDisplayListHead++, honoka_post_bg_dl);
+            }
+            else {
+                gSPDisplayList(gDisplayListHead++, mario_poster_bg_dl);
+            }
             break;
         case LUIGI:
             gSPDisplayList(gDisplayListHead++, luigi_poster_bg_dl);
@@ -126,8 +144,13 @@ void populate_entities(s32 charNum) {
         switch(rd) {
             case MARIO:
                 if (sleuthed_char[MARIO] == 0) {
-                    entities[i] = *((uObjSprite*)segmented_to_virtual(&mario_obj));
-                    textures[i] = *((uObjTxtr*)segmented_to_virtual(&mario_tex));
+                    if (is_jabo() && myScore > 25) {
+                        entities[i] = *((uObjSprite*)segmented_to_virtual(&honoka_obj));
+                        textures[i] = *((uObjTxtr*)segmented_to_virtual(&honoka_tex));
+                    } else {
+                        entities[i] = *((uObjSprite*)segmented_to_virtual(&mario_obj));
+                        textures[i] = *((uObjTxtr*)segmented_to_virtual(&mario_tex));
+                    }
                     entTracker[i] = MARIO;
                     if (charNum == MARIO) {
                         sleuthed_char[MARIO] = 1;
@@ -198,6 +221,7 @@ void populate_entities(s32 charNum) {
             break;
         }
     }
+    
 }
 
 u32 random_range(int e)  {
@@ -213,7 +237,7 @@ u32 random_range(int e)  {
 void randomize_positions(void) {
     int i;
     entities[index_of_sleuth].s.objX = (random_range(320 - 32) << 2);
-    entities[index_of_sleuth].s.objY = ((random_range(174) + 5) << 2);
+    entities[index_of_sleuth].s.objY = ((random_range(169) + 50) << 2);
     for (i = 0; i < ent_count; i++) {
         if (i != index_of_sleuth) {
             int x = random_range(320);
@@ -222,8 +246,8 @@ void randomize_positions(void) {
             int x2 = entities[index_of_sleuth].s.objX >> 2;
             int y2 = entities[index_of_sleuth].s.objX >> 2;
 
-            while (abs(y2 - y) < 10) y = random_range(240);
-            while (abs(x2 - x) < 10) x = random_range(320);
+            while (abs(y2 - y) < 14) y = random_range(240);
+            while (abs(x2 - x) < 14) x = random_range(320);
             entities[i].s.objX = x << 2;
             entities[i].s.objY = y << 2;
             if (mini_mode == MODE_SCATTERED || mini_mode == MODE_SCROLLSCATTER) {
@@ -231,6 +255,17 @@ void randomize_positions(void) {
             }
         }
     }
+    #ifdef JABO
+    for (i = 0; i < ent_count; i++) {
+        int x = entities[i].s.objX >> 2;
+        int y = entities[i].s.objY >> 2;
+        x -= JABO_MOMENT;
+        y -= JABO_MOMENT;
+        entities[i].s.objY = y << 2;
+        entities[i].s.objX = x << 2;
+
+    }
+    #endif
 }
 
 #define DEFINE_LOL 10
@@ -248,28 +283,42 @@ void uniform_positions(void) {
             }
         }
     }
+    #ifdef JABO
+    for (i = 0; i < ent_count; i++) {
+        int x = entities[i].s.objX >> 2;
+        int y = entities[i].s.objY >> 2;
+        x -= JABO_MOMENT;
+        y -= JABO_MOMENT;
+        entities[i].s.objY = y << 2;
+        entities[i].s.objX = x << 2;
+
+    }
+    #endif
 }
 
+typedef int16_t    qs102_t;
+#define qs102(n) ((qs102_t)((n)*0x0004))
 
-void scroll_chars(int mx, int my, int lx, int ly, int yx, int yy, int wx, int wy) {
+
+void scroll_chars(float mx, float my, float lx, float ly, float yx, float yy, float wx, float wy) {
     int i = 0;
     for (i; i < ent_count; i++) {
         switch (entTracker[i]){
             case MARIO:
-                entities[i].s.objX += (mx << 2);
-                entities[i].s.objY += (my << 2);
+                entities[i].s.objX += qs102(mx);
+                entities[i].s.objY += qs102(my);
             break;
             case LUIGI:
-                entities[i].s.objX += (lx << 2);
-                entities[i].s.objY += (ly << 2);
+                entities[i].s.objX += qs102(lx);
+                entities[i].s.objY += qs102(ly);
             break;
             case YOSHI:
-                entities[i].s.objX += (yx << 2);
-                entities[i].s.objY += (yy << 2);
+                entities[i].s.objX += qs102(yx);
+                entities[i].s.objY += qs102(yy);
             break;
             case WARIO:
-                entities[i].s.objX += (wx << 2);
-                entities[i].s.objY += (wy << 2);
+                entities[i].s.objX += qs102(wx);
+                entities[i].s.objY += qs102(wy);
             break;
         }
         if (entities[i].s.objX > (320 << 2)) entities[i].s.objX -= (352 << 2);
@@ -308,7 +357,8 @@ int curY = 50;
 
 int clickMode = MODE_NOTCLICK;
 
-
+u32 myScore = 0;
+u32 h_score = 0;
 int score_timer = 0;
 int prego_timer = 0;
 void reset(int gameover) {
@@ -322,11 +372,14 @@ void reset(int gameover) {
     mini_mode = MODE_PICKING;
     if (gameover){
         remaining_time = 30;
+        myScore = 0;
     }
     clickMode = MODE_NOTCLICK;
     foundChar = 0;
     score_timer = 0;
     prego_timer = 0;
+    if (myScore > h_score)
+        h_score = myScore;
 }
 
 void draw_cursor(void) {
@@ -384,7 +437,7 @@ void clear_entities(void) {
 }
 #include "audio/external.h"
 #include "seq_ids.h"
-int myScore = 0;
+
 void click(void) {
     int c_x = curX + 8,
         c_y = 240 - curY - 8;
@@ -394,6 +447,13 @@ void click(void) {
         ent_uly = (entities[index_of_sleuth].s.objY >> 2),
         ent_lrx = (entities[index_of_sleuth].s.objX >> 2) + 32,
         ent_lry = (entities[index_of_sleuth].s.objY >> 2) + 32;
+
+    #ifdef JABO
+        ent_ulx -= JABO_MOMENT_HITBOX;
+        ent_uly -= JABO_MOMENT_HITBOX;
+        ent_lrx -= JABO_MOMENT_HITBOX;
+        ent_lry -= JABO_MOMENT_HITBOX;
+    #endif
         
 
     if (c_x < ent_lrx && c_x > ent_ulx && c_y < ent_lry && c_y > ent_uly) {
@@ -428,6 +488,11 @@ int scrol_scatter_array[8] = {0,0,0,0,0,0,0,0};
 void minigame_init(void) {
     play_sequence(SEQ_PLAYER_LEVEL, SEQ_STREAMED_WANTED, 0);
     play_sequence(SEQ_PLAYER_SFX, SEQ_SOUND_PLAYER, 0);
+    if (save_file_exists(3))
+        h_score = gave_score();
+    else
+        h_score = 0;
+    gFrameBuffer0[0] = 0x2639;
 }
 
 void make_game_harder(void){
@@ -436,6 +501,9 @@ void make_game_harder(void){
     }
     else if (charPlaceMode == MODE_SCROLLSCATTER) {
         ent_count = 100;
+    }
+    else if (charPlaceMode == MODE_SINESCATTER) {
+        ent_count = 110;
     }
     else {
         switch(myScore) {
@@ -473,11 +541,33 @@ void render_bg(void) {
     gDPSetCycleType(gDisplayListHead++,G_CYC_FILL);
     gDPSetFillColor(gDisplayListHead++, 0);
     gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
+    gDPPipeSync(gDisplayListHead++);
+    gDPSetCycleType(gDisplayListHead++,G_CYC_1CYCLE);
 }
 
+float sineScrolls[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
+void sine_scroll(void){
+    int i;
+    for (i = 0; i < 4; i++) {
+        if (i == index_of_sleuth) {
+            sineScrolls[i] = 2.0f * sinf(((f32)gGlobalTimer / 16.0f) + (5.0 * (f32)i));
+        }
+        else {
+            sineScrolls[i] = 2.0f * sinf(((f32)gGlobalTimer / 16.0f) + (5.0 * (f32)i));
+        }
+    }
+    scroll_chars(sineScrolls[MARIO], 0.75f,
+                 sineScrolls[LUIGI], 0.75f, 
+                 sineScrolls[YOSHI], 0.75f,
+                 sineScrolls[WARIO], 0.75f);
+}
+
+#include "save_file.h"
 
 void render_minigame(void) {
     int i;
+    char buff[0x100];
     gSPLoadUcode(gDisplayListHead++, gspS2DEX2_fifoTextStart, gspS2DEX2_fifoDataStart);
 
     // init
@@ -487,10 +577,6 @@ void render_minigame(void) {
 
 
     if (mini_mode == MODE_PICKING) {
-        // gDPPipeSync(gDisplayListHead++);
-        // gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
-        // gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
-
         int i = 0;
         if (latch_picking == 0) {
             picking_timer = random_range(50) + 50;
@@ -498,23 +584,30 @@ void render_minigame(void) {
         }
         scroll_pick_chara(cte);
 
-        // if (gPlayer1Controller->buttonPressed & L_TRIG)
         if (gGlobalTimer % 2 == 0){
             if (picking_timer > 0)cte++;
         }
         picking_timer--;
 
         if (cte > WARIO) cte = MARIO;
-        // cte = LUIGI;
 
         if (picking_timer < -20) {
-            // picking_timer = 0;
             mini_mode = MODE_SLEUTH;
         }
         if (picking_timer == 0){
             play_sound(SOUND_MENU_CLICK_CHANGE_VIEW, gDefaultSoundArgs);
             r = random_pos_neg();
-            charPlaceMode = random_u16() & 3;
+            switch (myScore) {
+                case 0 ... 5:
+                    charPlaceMode = random_u16() & 1;
+                    break;
+                case 6 ... 16:
+                    charPlaceMode = random_u16() % 4;
+                    break;
+                default:
+                    charPlaceMode = random_u16() % 5;
+            }
+            // charPlaceMode = MODE_SINESCATTER;
             make_game_harder();
             clear_entities();
             for (i = 0; i < 8; i++) {
@@ -524,15 +617,13 @@ void render_minigame(void) {
     }
     if (mini_mode == MODE_SLEUTH) {
         render_bg();
-        // gDPPipeSync(gDisplayListHead++);
-        // gDPSetFillColor(gDisplayListHead++, 0xFFFFFFFF);
-        // gDPFillRectangle(gDisplayListHead++, 0, 0, 320, 240);
         if (latch_sleuth == 0){
             populate_entities(cte);
 
             switch (charPlaceMode) {
                 case MODE_SCROLLSCATTER:
                 case MODE_SCATTERED:
+                case MODE_SINESCATTER:
                     randomize_positions();
                     break;
                 case MODE_SCROLLUNIFORM:
@@ -551,9 +642,13 @@ void render_minigame(void) {
         }
 
         // debug reset
-        if (gPlayer1Controller->buttonPressed & L_TRIG) {
-            reset(1);
+        if (gPlayer1Controller->buttonDown & L_TRIG) {
+            // myScore = 0xFFFFFFFF - 6000;
+            // reset(1);
+            // print_text_fmt_int(50, 50, "%d %d", entities[index_of_sleuth].s.objX >> 2,
+                // entities[index_of_sleuth].s.objY >> 2);
         }
+        // print_text_fmt_int(50, 50, "%d", is_jabo());
 
         if (foundChar == 0){
             switch (charPlaceMode) {
@@ -575,6 +670,8 @@ void render_minigame(void) {
                 case MODE_SCATTERED:
                 case MODE_UNIFORM:
                     break;
+                case MODE_SINESCATTER:
+                    sine_scroll();
             }
         }
         draw_cursor();
@@ -584,7 +681,8 @@ void render_minigame(void) {
         print_text_fmt_int(140, 190, "%d", remaining_time);
 
         print_text(200, 210, "SCORE");
-        print_text_fmt_int(220, 190, "%d", myScore);
+        sprintf(buff, "%d", myScore);
+        print_text(220, 190, buff);
 
 
         if (secondTimer % 30 == 0 && foundChar == 0) {
@@ -612,7 +710,8 @@ void render_minigame(void) {
         print_text(120, 210, "TIME");
         print_text_fmt_int(140, 190, "%d", remaining_time);
         print_text(200, 210, "SCORE");
-        print_text_fmt_int(220, 190, "%d", myScore);
+        sprintf(buff, "%d", myScore);
+        print_text(220, 190, buff);
 
         score_timer --;
         if (score_timer < 0) {
@@ -642,20 +741,42 @@ void render_minigame(void) {
             disp_chara(i);
         }
         prego_timer--;
-        if (prego_timer < 0)
+        if (prego_timer < 0){
             mini_mode = MODE_GAMEOVER;
+            if (myScore >= h_score) {
+                gCurrSaveFileNum = 4;
+                // if (!save_file_exists(3)) {
+                    save_file_set_flags(SAVE_FLAG_FILE_EXISTS);
+                // }
+                save_score(myScore);
+                save_file_do_save(3);
+            }
+        }
         print_text(120, 210, "TIME");
         print_text_fmt_int(140, 190, "%d", remaining_time);
         print_text(200, 210, "SCORE");
-        print_text_fmt_int(220, 190, "%d", myScore);
+        sprintf(buff, "%d", myScore);
+        print_text(220, 190, buff);
     }
     if (mini_mode == MODE_GAMEOVER) {
+        #ifndef JABO
         gSPDisplayList(gDisplayListHead++, play_again_bg_dl);
-        print_text_centered(320 / 2, 174, "SCORE");
-        print_text_fmt_int(320 / 2, 158, "%d", myScore);
-
+        #else 
+        print_text(80, 100, "PRESS L TO");
+        print_text(80, 80, "PLAY AGAIN");
+        #endif
+        sprintf(buff, "HIGH SCORE %d", h_score);
+        print_text(80, 134, buff);
+        sprintf(buff, "SCORE %d", myScore);
+        print_text(80, 174, buff);
         draw_cursor();
+        print_text_fmt_int(320, 240, "M");
+
+        print_text_centered(320 / 2, 174, " ");
+
+        if (gPlayer1Controller->buttonPressed & L_TRIG) reset(1);
         if (clickMode == MODE_CLICK) {
+            
             click_go();
             clickMode = MODE_NOTCLICK;
         }

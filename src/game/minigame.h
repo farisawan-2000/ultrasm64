@@ -1,6 +1,11 @@
 #ifndef MINIGAME_H
 #define MINIGAME_H
 
+// #define JABO
+
+#define JABO_MOMENT 16
+#define JABO_MOMENT_HITBOX -10
+
 enum charValues {
     MARIO,
     LUIGI,
@@ -14,6 +19,7 @@ enum char_place_modes {
     MODE_SCATTERED,
     MODE_SCROLLUNIFORM,
     MODE_SCROLLSCATTER,
+    MODE_SINESCATTER,
 };
 
 enum modeSelect {
